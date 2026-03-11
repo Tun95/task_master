@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String        @id @default(cuid())
+  email         String        @unique
+  firebaseUid   String        @unique
+  fullName      String
+  role          Role          @default(USER)
+  isEmailVerified Boolean     @default(false)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  // Company Data (for USER A)
+  companyData   CompanyData?
+  
+  // Images uploaded by ADMIN to this user
+  receivedImages Image[]
+  
+  // OTPs (for email verification if needed)
+  otps          Otp[]
+  
+  // Active Sessions
+  sessions      Session[]
+}
+
+model Admin {
+  id            String        @id @default(cuid())
+  email         String        @unique
+  firebaseUid   String        @unique
+  fullName      String
+  role          Role          @default(ADMIN)
+  isEmailVerified Boolean     @default(false)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  otps          Otp[]
+  
+  // Images uploaded by this admin
+  uploadedImages Image[]
+  
+  // Active Sessions
+  sessions      Session[]
+}
+
+model Session {
+  id            String    @id @default(cuid())
+  userId        String?
+  adminId       String?
+  firebaseUid   String
+  email         String
+  token         String    @unique // Firebase token or JWT
+  refreshToken  String?   // If using refresh tokens
+  ipAddress     String?
+  userAgent     String?
+  location      Json?     // Location data if available
+  lastActivity  DateTime  @default(now())
+  expiresAt     DateTime
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  
+  // Relations
+  user          User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  admin         Admin?    @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([firebaseUid])
+  @@index([token])
+  @@index([userId, isActive])
+  @@index([adminId, isActive])
+}
+
+model CompanyData {
+  id              String   @id @default(cuid())
+  companyName     String
+  numberOfUsers   Int
+  numberOfProducts Int
+  percentage      Float    // Calculated field (numberOfProducts / numberOfUsers * 100)
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Image {
+  id          String   @id @default(cuid())
+  filename    String
+  originalName String
+  path        String
+  mimetype    String
+  size        Int
+  uploadedById String
+  uploadedBy  Admin    @relation(fields: [uploadedById], references: [id])
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+}
+
+model Otp {
+  id         String   @id @default(cuid())
+  email      String
+  code       String
+  expiresAt  DateTime
+  used       Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  
+  // For polymorphic relations
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id])
+  adminId    String?
+  admin      Admin?   @relation(fields: [adminId], references: [id])
+
+  @@index([email])
+  @@index([code])
+}
+
+enum Role {
+  USER
+  ADMIN
+}
