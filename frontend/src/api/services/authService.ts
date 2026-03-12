@@ -177,8 +177,6 @@ class AuthService {
 
   // Check if session is expired
   isSessionExpired(): boolean {
-    // Since we're using sessionId instead of JWT token,
-    // we rely on the backend to validate sessions
     return false;
   }
 

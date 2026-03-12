@@ -3,8 +3,7 @@ import { UserInfo } from "@/api/types/context.types";
 
 // Get encryption key from environment variables
 const ENCRYPTION_KEY =
-  process.env.NEXT_PUBLIC_ENCRYPTION_SECRET_KEY ||
-  "taskmaster-default-key";
+  process.env.NEXT_PUBLIC_ENCRYPTION_SECRET_KEY || "taskmaster-default-key";
 
 // Type guard to check if decrypted data is valid UserInfo
 export const isUserInfo = (data: unknown): data is UserInfo => {
@@ -61,7 +60,7 @@ export const decryptData = (encryptedData: string): UserInfo | null => {
 export const storeUserInfo = (userInfo: UserInfo): void => {
   try {
     const encrypted = encryptData(userInfo);
-    localStorage.setItem("taskmaster_user", encrypted);
+    localStorage.setItem("u_u", encrypted);
   } catch (error) {
     console.error("Failed to store user info:", error);
   }
@@ -70,7 +69,7 @@ export const storeUserInfo = (userInfo: UserInfo): void => {
 // Get and decrypt user info from localStorage
 export const getUserInfo = (): UserInfo | null => {
   try {
-    const encrypted = localStorage.getItem("taskmaster_user");
+    const encrypted = localStorage.getItem("u_u");
     if (!encrypted) return null;
     return decryptData(encrypted);
   } catch (error) {
@@ -81,7 +80,7 @@ export const getUserInfo = (): UserInfo | null => {
 
 // Clear user info from localStorage
 export const clearUserInfo = (): void => {
-  localStorage.removeItem("taskmaster_user");
+  localStorage.removeItem("u_u");
 };
 
 // Alias for getUserInfo (for consistency with example)
