@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { userService } from "@/api/services/userService";
 import { toast } from "sonner";
 import Image from "next/image";
@@ -19,6 +19,7 @@ export const UploadImageForm = ({
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -44,6 +45,41 @@ export const UploadImageForm = ({
       };
       reader.readAsDataURL(selectedFile);
     }
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const droppedFile = e.dataTransfer.files[0];
+    if (droppedFile) {
+      if (!droppedFile.type.startsWith("image/")) {
+        toast.error("Please select an image file");
+        return;
+      }
+
+      if (droppedFile.size > 5 * 1024 * 1024) {
+        toast.error("File size must be less than 5MB");
+        return;
+      }
+
+      setFile(droppedFile);
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result as string);
+      };
+      reader.readAsDataURL(droppedFile);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleBoxClick = () => {
+    fileInputRef.current?.click();
   };
 
   const handleUpload = async () => {
@@ -78,24 +114,27 @@ export const UploadImageForm = ({
   return (
     <div className="space-y-4">
       {!preview ? (
-        <div className="flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-700 border-dashed rounded-lg hover:border-purple-500 dark:hover:border-purple-400 transition-colors duration-200">
+        <div
+          onClick={handleBoxClick}
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          className="flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-700 border-dashed rounded-lg hover:border-purple-500 dark:hover:border-purple-400 transition-colors duration-200 cursor-pointer group"
+        >
+          <input
+            ref={fileInputRef}
+            id="file-upload"
+            name="file-upload"
+            type="file"
+            className="sr-only"
+            accept="image/*"
+            onChange={handleFileChange}
+          />
           <div className="space-y-1 text-center">
-            <Upload className="mx-auto h-12 w-12 text-gray-400" />
+            <Upload className="mx-auto h-12 w-12 text-gray-400 group-hover:text-purple-500 transition-colors" />
             <div className="flex text-sm text-gray-600 dark:text-gray-400">
-              <label
-                htmlFor="file-upload"
-                className="relative cursor-pointer bg-white dark:bg-gray-900 rounded-md font-medium text-purple-600 hover:text-purple-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-purple-500 dark:text-purple-400 dark:hover:text-purple-300"
-              >
-                <span>Upload an image</span>
-                <input
-                  id="file-upload"
-                  name="file-upload"
-                  type="file"
-                  className="sr-only"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                />
-              </label>
+              <span className="relative font-medium text-purple-600 hover:text-purple-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-purple-500 dark:text-purple-400 dark:hover:text-purple-300">
+                Click to upload
+              </span>
               <p className="pl-1">or drag and drop</p>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -118,7 +157,19 @@ export const UploadImageForm = ({
             <button
               onClick={handleUpload}
               disabled={isUploading}
-              className="flex-1 flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-purple-500 dark:hover:bg-purple-600 transition-colors duration-200"
+              className={`
+      flex-1 flex justify-center items-center py-2 px-4 
+      border border-transparent rounded-md shadow-sm 
+      text-sm font-medium text-white 
+      bg-purple-600 dark:bg-purple-500
+      focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500
+      transition-colors duration-200
+      ${
+        isUploading
+          ? "opacity-50 cursor-not-allowed"
+          : "cursor-pointer hover:bg-purple-700 dark:hover:bg-purple-600"
+      }
+    `}
             >
               {isUploading ? (
                 <>
@@ -132,10 +183,23 @@ export const UploadImageForm = ({
                 </>
               )}
             </button>
+
             <button
               onClick={handleCancel}
               disabled={isUploading}
-              className="flex-1 flex justify-center items-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+              className={`
+      flex-1 flex justify-center items-center py-2 px-4 
+      border border-gray-300 dark:border-gray-600 rounded-md shadow-sm 
+      text-sm font-medium text-gray-700 dark:text-gray-300 
+      bg-white dark:bg-gray-900
+      focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500
+      transition-colors duration-200
+      ${
+        isUploading
+          ? "opacity-50 cursor-not-allowed"
+          : "cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
+      }
+    `}
             >
               <X className="-ml-1 mr-2 h-4 w-4" />
               Cancel

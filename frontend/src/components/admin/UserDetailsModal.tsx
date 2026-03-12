@@ -300,13 +300,14 @@ export const UserDetailsModal = ({
                             className="rounded-xl mx-auto max-h-96 w-auto"
                             priority
                           />
-                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100">
+                          {/* Transparent overlay on hover */}
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100">
                             <a
                               href={userData.recentImage.url}
                               download
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="p-3 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors"
+                              className="p-3 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:bg-white transition-colors transform hover:scale-110 transition-transform"
                             >
                               <Download className="h-5 w-5 text-gray-700" />
                             </a>
