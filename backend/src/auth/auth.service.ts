@@ -6,7 +6,7 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { LoggerService } from '../common/logger/logger.service';
-import { SessionService } from './session.service';
+import { SessionService } from '../sessions/session.service';
 import * as admin from 'firebase-admin';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';

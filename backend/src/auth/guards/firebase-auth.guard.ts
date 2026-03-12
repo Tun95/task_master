@@ -4,7 +4,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { SessionService } from '../session.service';
+import { SessionService } from '../../sessions/session.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { getFirebaseAuth } from 'config/firebase.config';
 
