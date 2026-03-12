@@ -5,13 +5,13 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { UserFilterDto } from './dto/user-filter.dto';
-import { UpdateProfileDto } from './dto/update-profile.dto';
 import {
   CreateCompanyDataDto,
   UpdateCompanyDataDto,
 } from './dto/company-data.dto';
 import { CloudinaryService } from '@/cloudinary/cloudinary.service';
+import { UserFilterDto } from './dto/user-filter.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
 export class UserService {
@@ -109,20 +109,19 @@ export class UserService {
       },
     });
 
-    if (!user) {
-      const admin = await this.prisma.admin.findUnique({
-        where: { id },
-      });
-      if (admin) {
-        return admin;
-      }
+    if (user) {
+      return user;
     }
 
-    if (!user) {
-      throw new NotFoundException('User not found');
+    const admin = await this.prisma.admin.findUnique({
+      where: { id },
+    });
+
+    if (admin) {
+      return admin;
     }
 
-    return user;
+    throw new NotFoundException('User not found');
   }
 
   async getUserStats() {
@@ -233,7 +232,7 @@ export class UserService {
           path: result.secure_url,
           mimetype: file.mimetype,
           size: file.size,
-          uploadedById: userId,
+          uploadedById: userId, // This would need to be an admin ID in a real scenario
           userId: userId,
         },
       });
@@ -247,8 +246,6 @@ export class UserService {
         },
       };
     } else {
-      // For admins, they upload images to users
-      // We'll just return the Cloudinary result
       return {
         message: 'Image uploaded successfully',
         url: result.secure_url,
@@ -258,7 +255,6 @@ export class UserService {
   }
 
   async deleteProfileImage(userId: string, userType: string) {
-    // Find and delete image from database
     if (userType === 'user') {
       // Find images uploaded for this user
       const images = await this.prisma.image.findMany({
@@ -266,11 +262,8 @@ export class UserService {
       });
 
       for (const image of images) {
-        // Extract public_id from path or filename
         const publicId = image.filename;
         await this.cloudinary.deleteImage(publicId);
-
-        // Delete from database
         await this.prisma.image.delete({
           where: { id: image.id },
         });
@@ -282,10 +275,11 @@ export class UserService {
     return { message: 'Profile image deleted' };
   }
 
-  // ============ COMPANY DATA METHODS ============
+  // ============ USER A: COMPANY DATA METHODS ============
 
+  // Create company
   async createCompanyData(userId: string, createDto: CreateCompanyDataDto) {
-    // Check if user exists and is a USER (not ADMIN)
+    // Check if user exists
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -301,11 +295,11 @@ export class UserService {
 
     if (existing) {
       throw new BadRequestException(
-        'Company data already exists for this user',
+        'Company data already exists for this user. Use update instead.',
       );
     }
 
-    // Calculate percentage (numberOfProducts / numberOfUsers * 100)
+    // Calculate percentage
     const percentage =
       (createDto.numberOfProducts / createDto.numberOfUsers) * 100;
 
@@ -319,9 +313,18 @@ export class UserService {
       },
     });
 
-    return companyData;
+    this.logger.activity('COMPANY_DATA_CREATED', userId, {
+      companyName: createDto.companyName,
+      percentage: companyData.percentage,
+    });
+
+    return {
+      message: 'Company data created successfully',
+      data: companyData,
+    };
   }
 
+  // Get company
   async getCompanyData(userId: string) {
     const companyData = await this.prisma.companyData.findUnique({
       where: { userId },
@@ -331,11 +334,14 @@ export class UserService {
       throw new NotFoundException('Company data not found for this user');
     }
 
-    return companyData;
+    return {
+      message: 'Company data retrieved successfully',
+      data: companyData,
+    };
   }
 
+  // Update company
   async updateCompanyData(userId: string, updateDto: UpdateCompanyDataDto) {
-    // Get existing data
     const existing = await this.prisma.companyData.findUnique({
       where: { userId },
     });
@@ -344,10 +350,8 @@ export class UserService {
       throw new NotFoundException('Company data not found');
     }
 
-    // Prepare update data
     const updateData: any = { ...updateDto };
 
-    // Recalculate percentage if users or products changed
     if (updateDto.numberOfUsers || updateDto.numberOfProducts) {
       const users = updateDto.numberOfUsers ?? existing.numberOfUsers;
       const products = updateDto.numberOfProducts ?? existing.numberOfProducts;
@@ -364,11 +368,20 @@ export class UserService {
       data: updateData,
     });
 
-    return companyData;
+    this.logger.activity('COMPANY_DATA_UPDATED', userId, {
+      updates: Object.keys(updateDto),
+      newPercentage: companyData.percentage,
+    });
+
+    return {
+      message: 'Company data updated successfully',
+      data: companyData,
+    };
   }
 
   // ============ IMAGE UPLOAD METHODS ============
 
+  // Upload a single image
   async uploadImageToUser(
     adminId: string,
     userId: string,
@@ -392,14 +405,14 @@ export class UserService {
       throw new NotFoundException('Admin not found');
     }
 
-    // Upload to Cloudinary
+    // Upload single image to Cloudinary
     const result = await this.cloudinary.uploadImage(
       file,
       'user-images',
       userId,
     );
 
-    // Save image record according to your schema
+    // Save image record
     const image = await this.prisma.image.create({
       data: {
         filename: result.public_id,
@@ -407,9 +420,14 @@ export class UserService {
         path: result.secure_url,
         mimetype: file.mimetype,
         size: file.size,
-        uploadedById: adminId, // This matches your schema (uploadedById references Admin)
-        userId: userId, // This matches your schema (userId references User)
+        uploadedById: adminId,
+        userId: userId,
       },
+    });
+
+    this.logger.activity('IMAGE_UPLOADED_TO_USER', adminId, {
+      targetUserId: userId,
+      imageId: image.id,
     });
 
     return {
@@ -423,6 +441,7 @@ export class UserService {
     };
   }
 
+  // Get all images for a specific User
   async getUserImages(userId: string) {
     const images = await this.prisma.image.findMany({
       where: { userId },
@@ -438,22 +457,20 @@ export class UserService {
       },
     });
 
-    return images;
+    return {
+      message: 'User images retrieved successfully',
+      count: images.length,
+      images,
+    };
   }
 
-  // Additional method to get image by ID
-  async getImageById(imageId: string) {
-    const image = await this.prisma.image.findUnique({
-      where: { id: imageId },
+  // Get the most recent image for a specific User
+  async getMostRecentImage(userId: string) {
+    const image = await this.prisma.image.findFirst({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
       include: {
         uploadedBy: {
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
-          },
-        },
-        user: {
           select: {
             id: true,
             fullName: true,
@@ -464,30 +481,36 @@ export class UserService {
     });
 
     if (!image) {
-      throw new NotFoundException('Image not found');
+      return {
+        message: 'No images found for this user',
+        image: null,
+      };
     }
 
-    return image;
+    return {
+      message: 'Most recent image retrieved',
+      image,
+    };
   }
 
-  // Additional method to delete an image
-  async deleteImage(adminId: string, imageId: string) {
-    const image = await this.prisma.image.findUnique({
-      where: { id: imageId },
-    });
+  // Get combined data for a user (company data and recent image)
+  async getUserDashboard(userId: string) {
+    const [companyData, recentImage] = await Promise.all([
+      this.prisma.companyData.findUnique({
+        where: { userId },
+      }),
+      this.prisma.image.findFirst({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+      }),
+    ]);
 
-    if (!image) {
-      throw new NotFoundException('Image not found');
-    }
-
-    // Delete from Cloudinary
-    await this.cloudinary.deleteImage(image.filename);
-
-    // Delete from database
-    await this.prisma.image.delete({
-      where: { id: imageId },
-    });
-
-    return { message: 'Image deleted successfully' };
+    return {
+      userId,
+      companyData: companyData || null,
+      recentImage: recentImage || null,
+      hasCompanyData: !!companyData,
+      hasImage: !!recentImage,
+    };
   }
 }

@@ -3,7 +3,6 @@ import {
   Get,
   Post,
   Put,
-  Delete,
   Body,
   Param,
   Query,
@@ -33,64 +32,7 @@ export class UserController {
     private readonly logger: LoggerService,
   ) {}
 
-  // ============ ADMIN ENDPOINTS ============
-
-  @Get('admin/all')
-  @Roles('ADMIN')
-  async getAllUsers(@Query() filterDto: UserFilterDto) {
-    this.logger.activity('ADMIN_FETCH_ALL_USERS', undefined, {
-      filter: filterDto,
-    });
-    return this.userService.findAll(filterDto);
-  }
-
-  @Get('admin/user/:id')
-  @Roles('ADMIN')
-  async getUserById(@Param('id') id: string) {
-    this.logger.activity('ADMIN_FETCH_USER_BY_ID', undefined, { userId: id });
-    return this.userService.findById(id);
-  }
-
-  @Get('admin/stats')
-  @Roles('ADMIN')
-  async getUserStats() {
-    this.logger.activity('ADMIN_FETCH_USER_STATS');
-    return this.userService.getUserStats();
-  }
-
-  // ============ USER PROFILE ENDPOINTS ============
-
-  @Get('profile')
-  async getProfile(@User() user: any) {
-    this.logger.activity('FETCH_PROFILE', user.id);
-    return this.userService.getProfile(user.id, user.userType);
-  }
-
-  @Put('profile')
-  async updateProfile(@User() user: any, @Body() updateDto: UpdateProfileDto) {
-    this.logger.activity('UPDATE_PROFILE', user.id, {
-      updates: Object.keys(updateDto),
-    });
-    return this.userService.updateProfile(user.id, user.userType, updateDto);
-  }
-
-  @Post('profile/image')
-  @UseInterceptors(FileInterceptor('image'))
-  async uploadProfileImage(
-    @User() user: any,
-    @UploadedFile() file: Express.Multer.File,
-  ) {
-    this.logger.activity('UPLOAD_PROFILE_IMAGE', user.id);
-    return this.userService.uploadProfileImage(user.id, user.userType, file);
-  }
-
-  @Delete('profile/image')
-  async deleteProfileImage(@User() user: any) {
-    this.logger.activity('DELETE_PROFILE_IMAGE', user.id);
-    return this.userService.deleteProfileImage(user.id, user.userType);
-  }
-
-  // ============ USER COMPANY DATA (for USER A) ============
+  // ============ USER A: COMPANY DATA ENDPOINTS ============
 
   @Post('company-data')
   async createCompanyData(
@@ -118,7 +60,7 @@ export class UserController {
     return this.userService.updateCompanyData(user.id, updateDto);
   }
 
-  // ============ IMAGE UPLOAD FOR ADMIN TO USER ============
+  // ============ USER B: IMAGE UPLOAD ENDPOINTS ============
 
   @Post('admin/upload-to-user/:userId')
   @Roles('ADMIN')
@@ -141,6 +83,36 @@ export class UserController {
     return this.userService.getUserImages(userId);
   }
 
+  @Get('admin/user-recent-image/:userId')
+  @Roles('ADMIN')
+  async getMostRecentImage(@Param('userId') userId: string) {
+    this.logger.activity('ADMIN_FETCH_RECENT_IMAGE', undefined, { userId });
+    return this.userService.getMostRecentImage(userId);
+  }
+
+  @Get('admin/user-dashboard/:userId')
+  @Roles('ADMIN')
+  async getUserDashboard(@Param('userId') userId: string) {
+    this.logger.activity('ADMIN_FETCH_USER_DASHBOARD', undefined, { userId });
+    return this.userService.getUserDashboard(userId);
+  }
+
+  // ============ OPTIONAL: PROFILE ENDPOINTS (Only added for fun) ============
+
+  @Get('profile')
+  async getProfile(@User() user: any) {
+    this.logger.activity('FETCH_PROFILE', user.id);
+    return this.userService.getProfile(user.id, user.userType);
+  }
+
+  @Put('profile')
+  async updateProfile(@User() user: any, @Body() updateDto: UpdateProfileDto) {
+    this.logger.activity('UPDATE_PROFILE', user.id, {
+      updates: Object.keys(updateDto),
+    });
+    return this.userService.updateProfile(user.id, user.userType, updateDto);
+  }
+
   // ============ TEST ENDPOINT FOR PERCENTAGE CALCULATION ============
 
   @Get('company-data/percentage')
@@ -156,5 +128,30 @@ export class UserController {
 
     const companyData = await this.userService.getCompanyData(user.id);
     return companyData;
+  }
+
+  // ============ ADMIN ENDPOINTS (for user management) ============
+
+  @Get('admin/all')
+  @Roles('ADMIN')
+  async getAllUsers(@Query() filterDto: UserFilterDto) {
+    this.logger.activity('ADMIN_FETCH_ALL_USERS', undefined, {
+      filter: filterDto,
+    });
+    return this.userService.findAll(filterDto);
+  }
+
+  @Get('admin/user/:id')
+  @Roles('ADMIN')
+  async getUserById(@Param('id') id: string) {
+    this.logger.activity('ADMIN_FETCH_USER_BY_ID', undefined, { userId: id });
+    return this.userService.findById(id);
+  }
+
+  @Get('admin/stats')
+  @Roles('ADMIN')
+  async getUserStats() {
+    this.logger.activity('ADMIN_FETCH_USER_STATS');
+    return this.userService.getUserStats();
   }
 }
