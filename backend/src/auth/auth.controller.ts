@@ -9,7 +9,7 @@ import {
   Headers,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { LoggerService } from '../common/logger/logger.service';
+import { LoggerService } from '../utils/common/logger/logger.service';
 import { AuthService } from './auth.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { RegisterAdminDto } from './dto/register-admin.dto';
@@ -18,7 +18,7 @@ import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { ResendOtpDto } from './dto/resend-otp.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
-import { FirebaseAuthGuard } from './guards/firebase-auth.guard';
+import { FirebaseAuthGuard } from '../utils/common/guards/firebase-auth.guard';
 
 @Controller('auth')
 export class AuthController {

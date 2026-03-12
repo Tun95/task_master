@@ -5,11 +5,11 @@ import {
   InternalServerErrorException,
   OnModuleInit,
 } from '@nestjs/common';
-import { LoggerService } from '../common/logger/logger.service';
-import { SessionService } from '../sessions/session.service';
+import { LoggerService } from '../utils/common/logger/logger.service';
+import { SessionService } from '../utils/sessions/session.service';
 import * as admin from 'firebase-admin';
-import { PrismaService } from '../prisma/prisma.service';
-import { EmailService } from '../email/email.service';
+import { PrismaService } from '../utils/prisma/prisma.service';
+import { EmailService } from '../utils/email/email.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { RegisterAdminDto } from './dto/register-admin.dto';
 import { LoginDto } from './dto/login.dto';

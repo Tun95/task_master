@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { SessionService } from '../../sessions/session.service';
-import { PrismaService } from '../../prisma/prisma.service';
-import { LoggerService } from '../../common/logger/logger.service';
+import { SessionService } from '../../utils/sessions/session.service';
+import { PrismaService } from '../../utils/prisma/prisma.service';
+import { LoggerService } from '../../utils/common/logger/logger.service';
 
 describe('SessionService', () => {
   let service: SessionService;
@@ -50,7 +50,6 @@ describe('SessionService', () => {
     const result = await service.createSession({
       firebaseUid: 'firebase-123',
       email: 'test@example.com',
-      token: 'token-123',
     });
 
     expect(mockPrismaService.session.updateMany).toHaveBeenCalledWith({

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { LoggerService } from '../common/logger/logger.service';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '@/utils/prisma/prisma.service';
 import * as crypto from 'crypto';
 
 @Injectable()

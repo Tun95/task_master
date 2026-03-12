@@ -20,10 +20,10 @@
     "paths": {
       "@/*": ["src/*"],
       "@auth/*": ["src/auth/*"],
-      "@common/*": ["src/common/*"],
+      "@common/*": ["src/utils/common/*"],
       "@config/*": ["src/config/*"],
-      "@prisma/*": ["src/prisma/*"],
-      "@email/*": ["src/email/*"]
+      "@prisma/*": ["src/utils/prisma/*"],
+      "@email/*": ["src/utils/email/*"]
     }
   }
 }

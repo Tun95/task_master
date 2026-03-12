@@ -16,13 +16,10 @@ model User {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   
-  // Company Data (for USER A)
   companyData   CompanyData?
   
-  // Images uploaded by ADMIN to this user
   receivedImages Image[]
   
-  // OTPs (for email verification if needed)
   otps          Otp[]
   
   // Active Sessions
