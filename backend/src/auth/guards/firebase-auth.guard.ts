@@ -4,9 +4,9 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { firebaseAuth } from '../../../config/firebase.config';
 import { SessionService } from '../session.service';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../../prisma/prisma.service';
+import { getFirebaseAuth } from 'config/firebase.config';
 
 @Injectable()
 export class FirebaseAuthGuard implements CanActivate {
@@ -29,6 +29,9 @@ export class FirebaseAuthGuard implements CanActivate {
       if (!isValidSession) {
         throw new UnauthorizedException('Session expired or invalid');
       }
+
+      // Get Firebase Auth instance
+      const firebaseAuth = getFirebaseAuth();
 
       // Verify Firebase token
       const decodedToken = await firebaseAuth.verifyIdToken(token);
@@ -59,7 +62,10 @@ export class FirebaseAuthGuard implements CanActivate {
   }
 
   private extractToken(request: any): string | undefined {
-    const [type, token] = request.headers.authorization?.split(' ') ?? [];
+    const authHeader = request.headers.authorization;
+    if (!authHeader) return undefined;
+
+    const [type, token] = authHeader.split(' ');
     return type === 'Bearer' ? token : undefined;
   }
 }

@@ -3,6 +3,7 @@ import {
   BadRequestException,
   UnauthorizedException,
   InternalServerErrorException,
+  OnModuleInit,
 } from '@nestjs/common';
 import { LoggerService } from '../common/logger/logger.service';
 import { SessionService } from './session.service';
@@ -14,10 +15,12 @@ import { RegisterAdminDto } from './dto/register-admin.dto';
 import { LoginDto } from './dto/login.dto';
 import * as crypto from 'crypto';
 import { ConfigService } from 'config/config.service';
-import { firebaseAuth } from 'config/firebase.config';
+import { getFirebaseAuth } from 'config/firebase.config';
 
 @Injectable()
-export class AuthService {
+export class AuthService implements OnModuleInit {
+  private firebaseAuth: admin.auth.Auth;
+
   constructor(
     private prisma: PrismaService,
     private logger: LoggerService,
@@ -25,6 +28,24 @@ export class AuthService {
     private emailService: EmailService,
     private config: ConfigService,
   ) {}
+
+  onModuleInit() {
+    // Get Firebase auth after module initialization
+    try {
+      this.firebaseAuth = getFirebaseAuth();
+      this.logger.log(
+        'Firebase Auth initialized in AuthService',
+        'AuthService',
+      );
+    } catch (error) {
+      this.logger.error(
+        'Failed to get Firebase Auth',
+        error.stack,
+        'AuthService',
+      );
+      throw error;
+    }
+  }
 
   private generateOTP(): string {
     return crypto.randomInt(100000, 999999).toString();
@@ -59,7 +80,7 @@ export class AuthService {
       // Create user in Firebase
       let firebaseUser: admin.auth.UserRecord;
       try {
-        firebaseUser = await firebaseAuth.createUser({
+        firebaseUser = await this.firebaseAuth.createUser({
           email: dto.email,
           password: dto.password,
           displayName: dto.fullName,
@@ -169,7 +190,7 @@ export class AuthService {
       // Create admin in Firebase
       let firebaseAdmin: admin.auth.UserRecord;
       try {
-        firebaseAdmin = await firebaseAuth.createUser({
+        firebaseAdmin = await this.firebaseAuth.createUser({
           email: dto.email,
           password: dto.password,
           displayName: dto.fullName,
@@ -276,7 +297,7 @@ export class AuthService {
       // Get user from Firebase to verify email
       let firebaseUser: admin.auth.UserRecord;
       try {
-        firebaseUser = await firebaseAuth.getUser(firebaseUid);
+        firebaseUser = await this.firebaseAuth.getUser(firebaseUid);
       } catch (error) {
         this.logger.error(
           'Firebase user fetch failed',
@@ -438,7 +459,7 @@ export class AuthService {
         });
 
         if (user) {
-          await firebaseAuth.updateUser(user.firebaseUid, {
+          await this.firebaseAuth.updateUser(user.firebaseUid, {
             emailVerified: true,
           });
 
@@ -462,7 +483,7 @@ export class AuthService {
         });
 
         if (admin) {
-          await firebaseAuth.updateUser(admin.firebaseUid, {
+          await this.firebaseAuth.updateUser(admin.firebaseUid, {
             emailVerified: true,
           });
 
@@ -598,7 +619,8 @@ export class AuthService {
       }
 
       // Generate password reset link via Firebase
-      const resetLink = await firebaseAuth.generatePasswordResetLink(email);
+      const resetLink =
+        await this.firebaseAuth.generatePasswordResetLink(email);
 
       // Send password reset email
       await this.emailService.sendPasswordResetEmail({
@@ -634,8 +656,9 @@ export class AuthService {
   async resetPassword(oobCode: string, newPassword: string) {
     try {
       // Verify the OOB code (Firebase reset code)
+      let email: string;
       try {
-        const email = await firebaseAuth.verifyPasswordResetCode(oobCode);
+        email = await this.firebaseAuth.verifyPasswordResetCode(oobCode);
         this.logger.log(
           `Password reset verified for email: ${email}`,
           'AuthService',
@@ -649,10 +672,11 @@ export class AuthService {
       }
 
       // Confirm password reset
-      await firebaseAuth.confirmPasswordReset(oobCode, newPassword);
+      await this.firebaseAuth.confirmPasswordReset(oobCode, newPassword);
 
       this.logger.activity('PASSWORD_RESET_COMPLETED', undefined, {
         resetTokenUsed: true,
+        email,
       });
 
       return {
@@ -675,7 +699,7 @@ export class AuthService {
   async getProfile(firebaseUid: string) {
     try {
       // Get user from Firebase
-      const firebaseUser = await firebaseAuth.getUser(firebaseUid);
+      const firebaseUser = await this.firebaseAuth.getUser(firebaseUid);
 
       // Get from database
       const user = await this.prisma.user.findUnique({

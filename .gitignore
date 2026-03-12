@@ -3,6 +3,9 @@ dist
 node_modules
 build
 
+# files
+starlab-1e23a.json
+
 # Logs
 logs
 *.log

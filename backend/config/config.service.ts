@@ -112,7 +112,7 @@ export class ConfigService {
         address:
           process.env.EMAIL_FROM ||
           process.env.EMAIL_USERNAME ||
-          'noreply@taskmaster.com',
+          'shopmate400@gmail.com',
         name: process.env.EMAIL_FROM_NAME || 'TaskMaster',
       },
     };
@@ -125,8 +125,6 @@ export class ConfigService {
       apiKey: process.env.CLOUDINARY_API_KEY,
       apiSecret: process.env.CLOUDINARY_API_SECRET,
       url: process.env.CLOUDINARY_URL,
-      uploadPreset:
-        process.env.CLOUDINARY_UPLOAD_PRESET || 'taskmaster_uploads',
     };
   }
 
@@ -175,7 +173,6 @@ export class ConfigService {
         process.env.ALLOWED_MIME_TYPES ||
         'image/jpeg,image/png,image/gif,image/webp'
       ).split(','),
-      uploadDir: process.env.UPLOAD_DIR || './uploads',
     };
   }
 }

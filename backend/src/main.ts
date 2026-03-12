@@ -2,21 +2,32 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
-import { LoggerService } from './common/logger/logger.service';
+import { ConfigService } from 'config/config.service';
+import { initializeFirebase } from 'config/firebase.config';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
-    logger: new LoggerService(), // Use custom logger
-  });
+  // Create a temporary config service for Firebase initialization
+  const configService = new ConfigService();
 
-  // Enable CORS
-  app.enableCors({
-    origin: ['http://localhost:3000', 'http://localhost:3001'],
-    credentials: true,
-  });
+  // Initialize Firebase FIRST, before anything else
+  try {
+    initializeFirebase(configService);
+    console.log('🔥 Firebase initialized successfully');
+  } catch (error) {
+    console.error('Failed to initialize Firebase:', error);
+    process.exit(1);
+  }
+
+  const app = await NestFactory.create(AppModule);
 
   // Security
   app.use(helmet());
+
+  // CORS
+  app.enableCors({
+    origin: configService.frontendUrl || 'http://localhost:3000',
+    credentials: true,
+  });
 
   // Validation
   app.useGlobalPipes(
@@ -30,10 +41,10 @@ async function bootstrap() {
   // Global prefix
   app.setGlobalPrefix('api');
 
-  const port = process.env.PORT || 5000;
+  const port = configService.port || 5000;
   await app.listen(port);
 
-  const logger = app.get(LoggerService);
-  logger.log(`🚀 Server running on http://localhost:${port}`, 'Bootstrap');
+  console.log(`🚀 TaskMaster API running on: http://localhost:${port}/api`);
+  console.log(`📝 Environment: ${configService.nodeEnv}`);
 }
 bootstrap();
