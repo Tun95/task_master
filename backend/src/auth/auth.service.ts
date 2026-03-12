@@ -331,7 +331,7 @@ export class AuthService implements OnModuleInit {
         );
       }
 
-      // Create session (this will invalidate any existing sessions)
+      // Create session (NOTE: this will invalidate any existing sessions)
       const session = await this.sessionService.createSession({
         firebaseUid,
         email: dto.email,
@@ -527,7 +527,6 @@ export class AuthService implements OnModuleInit {
       const admin = await this.prisma.admin.findUnique({ where: { email } });
 
       if (!user && !admin) {
-        // Don't reveal if email exists for security
         return {
           message: 'If the email exists, a new verification code has been sent',
         };
@@ -535,7 +534,6 @@ export class AuthService implements OnModuleInit {
 
       const account = user || admin;
 
-      // Type guard to ensure account is not null
       if (!account) {
         return {
           message: 'If the email exists, a new verification code has been sent',
@@ -610,7 +608,6 @@ export class AuthService implements OnModuleInit {
       const admin = await this.prisma.admin.findUnique({ where: { email } });
 
       if (!user && !admin) {
-        // Don't reveal if email exists for security
         return {
           message: 'If the email exists, a password reset link has been sent',
         };
@@ -707,14 +704,14 @@ export class AuthService implements OnModuleInit {
           'AuthService',
         );
 
-        // Invalidate all sessions in your database
+        // Invalidate all sessions in database
         await this.sessionService.invalidateAllUserSessions(firebaseUid);
         this.logger.log(
           `Invalidated all sessions for user after password reset`,
           'AuthService',
         );
 
-        // Update user's password change timestamp in your database (optional)
+        // Update user's password change timestamp
         if (user) {
           await this.prisma.user.update({
             where: { id: user.id },

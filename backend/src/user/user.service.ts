@@ -27,8 +27,6 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
 
-    // Calculate percentage (products per user * 100)
-    // This shows what percentage of users are using products
     const percentage =
       (createDto.numberOfProducts / createDto.numberOfUsers) * 100;
 
@@ -130,7 +128,7 @@ export class UserService {
       orderBy: { createdAt: 'desc' },
     });
 
-    // Get the most recent image (optional - for display)
+    // Getthe  most recent image
     const recentImage = await this.prisma.image.findFirst({
       where: { userId },
       orderBy: { createdAt: 'desc' },
