@@ -6,28 +6,24 @@ import {
   HttpCode,
   HttpStatus,
   UseGuards,
-  Get,
   Headers,
 } from '@nestjs/common';
-import { SessionService } from './session.service';
-
 import { Request } from 'express';
 import { LoggerService } from '../common/logger/logger.service';
 import { FirebaseAuthGuard } from './guards/firebase-auth.guard';
 import { AuthService } from './auth.service';
-import { User } from 'src/common/decorators/user.decorator';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { RegisterAdminDto } from './dto/register-admin.dto';
 import { LoginDto } from './dto/login.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { ResendOtpDto } from './dto/resend-otp.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    private readonly sessionService: SessionService,
     private readonly logger: LoggerService,
   ) {}
 
@@ -97,25 +93,9 @@ export class AuthController {
     return this.authService.forgotPassword(forgotDto.email);
   }
 
-  @Get('profile')
-  @UseGuards(FirebaseAuthGuard)
-  async getProfile(@User() user: any) {
-    return this.authService.getProfile(user.firebaseUid);
-  }
-
-  @Get('sessions/active')
-  @UseGuards(FirebaseAuthGuard)
-  async getActiveSession(@Headers('authorization') auth: string) {
-    const token = auth.replace('Bearer ', '');
-    const session = await this.sessionService.getActiveSession(token);
-    return { session };
-  }
-
-  @Post('sessions/invalidate-all')
-  @UseGuards(FirebaseAuthGuard)
+  @Post('reset-password')
   @HttpCode(HttpStatus.OK)
-  async invalidateAllSessions(@User() user: any) {
-    await this.sessionService.invalidateAllUserSessions(user.firebaseUid);
-    return { message: 'All sessions invalidated' };
+  async resetPassword(@Body() resetDto: ResetPasswordDto) {
+    return this.authService.resetPassword(resetDto.token, resetDto.newPassword);
   }
 }
