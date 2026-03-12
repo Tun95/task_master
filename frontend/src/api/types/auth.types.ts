@@ -70,16 +70,28 @@ export interface AuthResponse {
   hasCompanyData?: boolean;
 }
 
-export interface LoginResponse extends AuthResponse {}
+export type LoginResponse = AuthResponse;
 
+// Validation error item
+export interface ValidationErrorItem {
+  type?: string;
+  value?: string;
+  msg: string;
+  path?: string;
+  location?: string;
+}
+
+// Updated ErrorResponse to include validation errors
 export interface ErrorResponse {
   status: string;
   message: string;
   error?: string;
+  errors?: ValidationErrorItem[]; // Add this for validation errors
   statusCode?: number;
 }
 
-export interface ApiError {
+export type ApiError = {
   message: string;
   status?: number;
-}
+  errors?: ValidationErrorItem[]; // Optionally include validation errors in ApiError
+};

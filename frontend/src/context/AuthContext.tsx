@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { authService } from "@/api/services/authService";
 import { AuthContextType, UserInfo } from "@/api/types/context.types";
+import { ApiError } from "@/api/types/auth.types";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -36,17 +37,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const response = await authService.login({ email, password });
 
-      const userInfo: UserInfo = {
-        id: response.user?.id || response.admin?.id || "",
-        fullName: response.user?.fullName || response.admin?.fullName || "",
-        email: response.user?.email || response.admin?.email || "",
-        role: response.accountType === "admin" ? "ADMIN" : "USER",
-        accountType: response.accountType,
-        sessionId: response.sessionId,
-        hasCompanyData: response.hasCompanyData,
-      };
-
+      const userInfo = authService.getUserInfo();
       setUser(userInfo);
+
       toast.success("Login successful!");
 
       // Redirect based on role
@@ -55,9 +48,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       } else {
         router.push("/dashboard");
       }
-    } catch (err: any) {
-      setError(err.message || "Login failed");
-      toast.error(err.message || "Login failed");
+    } catch (error: unknown) {
+      const apiError = error as ApiError;
+      const errorMessage = apiError.message || "Login failed";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -69,8 +64,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(null);
       toast.success("Logged out successfully");
       router.push("/login");
-    } catch (err) {
-      console.error("Logout error:", err);
+    } catch (error: unknown) {
+      console.error("Logout error:", error);
     }
   };
 

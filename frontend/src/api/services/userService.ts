@@ -16,7 +16,7 @@ class UserService {
   constructor() {
     this.api = axios.create({
       baseURL: API_BASE_URL,
-      timeout: 30000,
+      timeout: 50000,
     });
 
     // Add request interceptor for auth token

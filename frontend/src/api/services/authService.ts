@@ -9,12 +9,11 @@ import {
   ResetPasswordData,
   AuthResponse,
   ErrorResponse,
-  User,
-  Admin,
   LoginResponse,
+  ApiError,
 } from "../types/auth.types";
 import { UserInfo } from "../types/context.types";
-import { encryptData, storeUserInfo } from "@/utils/encryption";
+import { storeUserInfo, getUserInfo, clearUserInfo } from "@/utils/encryption";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -24,7 +23,7 @@ class AuthService {
   constructor() {
     this.api = axios.create({
       baseURL: API_BASE_URL,
-      timeout: 30000,
+      timeout: 50000,
       headers: {
         "Content-Type": "application/json",
       },
@@ -49,45 +48,138 @@ class AuthService {
     console.error("API Error:", error);
 
     const response = error.response?.data;
-    const message =
-      response?.message || error.message || "An unexpected error occurred";
     const status = error.response?.status;
 
-    throw { message, status };
+    // Handle validation errors array (from dto)
+    if (
+      response?.errors &&
+      Array.isArray(response.errors) &&
+      response.errors.length > 0
+    ) {
+      const errorMessages = response.errors.map((err) => err.msg).join(", ");
+      const apiError: ApiError = {
+        message: errorMessages || response.message || "Validation failed",
+        status,
+        errors: response.errors,
+      };
+      throw apiError;
+    }
+
+    // Handle network errors
+    if (error.code === "ECONNREFUSED" || error.code === "NETWORK_ERROR") {
+      const apiError: ApiError = {
+        message: "Unable to connect to server. Please check your connection.",
+        status: 503,
+      };
+      throw apiError;
+    }
+
+    // Use response message or fallback to error message
+    const message =
+      response?.message ||
+      response?.error ||
+      error.message ||
+      "An unexpected error occurred";
+
+    // Handle specific HTTP status codes
+    if (status === 401) {
+      const apiError: ApiError = {
+        message: "Unauthorized access. Please login again.",
+        status,
+      };
+      throw apiError;
+    }
+
+    if (status === 403) {
+      const apiError: ApiError = {
+        message: "Access forbidden. Insufficient permissions.",
+        status,
+      };
+      throw apiError;
+    }
+
+    if (status === 404) {
+      const apiError: ApiError = {
+        message: "Resource not found.",
+        status,
+      };
+      throw apiError;
+    }
+
+    if (status && status >= 500) {
+      const apiError: ApiError = {
+        message: "Server error. Please try again later.",
+        status,
+      };
+      throw apiError;
+    }
+
+    const apiError: ApiError = {
+      message,
+      status,
+    };
+
+    throw apiError;
   }
 
+  // Convert API response to UserInfo
+  private convertToUserInfo(response: AuthResponse): UserInfo {
+    return {
+      id: response.user?.id || response.admin?.id || "",
+      fullName: response.user?.fullName || response.admin?.fullName || "",
+      email: response.user?.email || response.admin?.email || "",
+      role: response.accountType === "admin" ? "ADMIN" : "USER",
+      accountType: response.accountType,
+      sessionId: response.sessionId,
+      hasCompanyData: response.hasCompanyData,
+    };
+  }
+
+  // Get decrypted user info from localStorage
   getUserInfo(): UserInfo | null {
     if (typeof window === "undefined") return null;
-    const encrypted = localStorage.getItem("taskmaster_user");
-    if (!encrypted) return null;
-    try {
-      return JSON.parse(atob(encrypted));
-    } catch {
-      return null;
-    }
+    return getUserInfo();
   }
 
+  // Store encrypted user info
   private storeUserInfo(userInfo: UserInfo): void {
-    const encrypted = btoa(JSON.stringify(userInfo));
-    localStorage.setItem("taskmaster_user", encrypted);
+    storeUserInfo(userInfo);
   }
 
+  // Clear auth data
   clearAuth(): void {
-    localStorage.removeItem("taskmaster_user");
+    clearUserInfo();
   }
 
+  // Check authentication status
   isAuthenticated(): boolean {
-    return !!this.getUserInfo();
+    const userInfo = this.getUserInfo();
+    return !!userInfo?.sessionId;
   }
 
+  // Check if user is admin
   isAdmin(): boolean {
     const user = this.getUserInfo();
     return user?.role === "ADMIN";
   }
 
+  // Check if user is regular user
   isUser(): boolean {
     const user = this.getUserInfo();
     return user?.role === "USER";
+  }
+
+  // Get current user ID
+  getUserId(): string | null {
+    const userInfo = this.getUserInfo();
+    return userInfo?.id || null;
+  }
+
+  // Check if session is expired
+  isSessionExpired(): boolean {
+    // Since we're using sessionId instead of JWT token,
+    // we rely on the backend to validate sessions
+    return false;
   }
 
   async login(loginData: LoginData): Promise<LoginResponse> {
@@ -98,16 +190,7 @@ class AuthService {
       );
 
       if (response.data) {
-        const userInfo: UserInfo = {
-          id: response.data.user?.id || response.data.admin?.id || "",
-          fullName:
-            response.data.user?.fullName || response.data.admin?.fullName || "",
-          email: response.data.user?.email || response.data.admin?.email || "",
-          role: response.data.accountType === "admin" ? "ADMIN" : "USER",
-          accountType: response.data.accountType,
-          sessionId: response.data.sessionId,
-          hasCompanyData: response.data.hasCompanyData,
-        };
+        const userInfo = this.convertToUserInfo(response.data);
         this.storeUserInfo(userInfo);
       }
 
