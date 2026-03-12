@@ -17,6 +17,15 @@ import { storeUserInfo, getUserInfo, clearUserInfo } from "@/utils/encryption";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
+// Helper to handle 401 unauthorized - redirect to login
+const handleUnauthorized = () => {
+  if (typeof window !== "undefined") {
+    clearUserInfo();
+    // Use window.location for a hard redirect to clear all state
+    window.location.href = "/login";
+  }
+};
+
 class AuthService {
   private api: AxiosInstance;
 
@@ -41,6 +50,17 @@ class AuthService {
         return config;
       },
       (error) => Promise.reject(error),
+    );
+
+    // Add response interceptor for 401 handling
+    this.api.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response?.status === 401) {
+          handleUnauthorized();
+        }
+        return Promise.reject(error);
+      },
     );
   }
 

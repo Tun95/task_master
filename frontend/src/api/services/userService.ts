@@ -18,6 +18,14 @@ import { ErrorResponse } from "../types/auth.types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
+// Helper to handle 401 unauthorized - redirect to login
+const handleUnauthorized = () => {
+  if (typeof window !== "undefined") {
+    authService.clearAuth();
+    window.location.href = "/login";
+  }
+};
+
 class UserService {
   private api: AxiosInstance;
 
@@ -38,14 +46,38 @@ class UserService {
       },
       (error) => Promise.reject(error),
     );
+
+    // Add response interceptor for 401 handling
+    this.api.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response?.status === 401) {
+          handleUnauthorized();
+        }
+        return Promise.reject(error);
+      },
+    );
   }
 
   private handleError(error: AxiosError<ErrorResponse>): never {
     console.error("API Error:", error);
     const response = error.response?.data;
+    const status = error.response?.status;
+
+    // Check for 401 in the error handler as well (in case interceptor doesn't catch it)
+    if (status === 401) {
+      handleUnauthorized();
+    }
+
     const message =
       response?.message || error.message || "An unexpected error occurred";
-    throw { message };
+
+    const apiError = {
+      message,
+      status,
+    };
+
+    throw apiError;
   }
 
   // ============ USER ENDPOINTS ============
