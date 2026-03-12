@@ -206,7 +206,7 @@ export class UserService {
             orderBy: {
               createdAt: 'desc',
             },
-            take: 1, // Get most recent company data
+            take: 1,
           } as any,
           receivedImages: {
             orderBy: {

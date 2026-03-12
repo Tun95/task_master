@@ -1,8 +1,27 @@
-import type { NextConfig } from "next";
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com", // For Google auth avatars if you use them
+        pathname: "/**",
+      },
+    ],
+  },
 
-const nextConfig: NextConfig = {
-  /* config options here */
-  reactCompiler: true,
+  serverRuntimeConfig: {
+    fetchTimeout: 30000,
+  },
+  publicRuntimeConfig: {
+    // Will be available on both server and client
+    apiUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000",
+  },
 };
 
-export default nextConfig;
+module.exports = nextConfig;

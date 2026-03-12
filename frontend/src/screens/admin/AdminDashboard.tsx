@@ -1,53 +1,63 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { userService } from "@/api/services/userService";
-import { UploadImageForm } from "@/components/forms/UploadImageForm";
-import { UserDashboardResponse } from "@/api/types/user.types";
+import {
+  UserDashboardResponse,
+  UsersResponseDto,
+  UserStatsResponse,
+} from "@/api/types/user.types";
 import { toast } from "sonner";
-import Image from "next/image";
 import { ApiError } from "@/api/types/auth.types";
+import { RefreshCw, LayoutDashboard } from "lucide-react";
+import { StatsCards } from "@/components/admin/StatsCards";
+import { RecentActivity } from "@/components/admin/RecentActivity";
+import { UserList } from "@/components/admin/UserList";
+import { UserDetailsModal } from "@/components/admin/UserDetailsModal";
 
 export const AdminDashboard = () => {
   const { user } = useAuth();
-  const [selectedUserId, setSelectedUserId] = useState<string>("");
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [userData, setUserData] = useState<UserDashboardResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [userList, setUserList] = useState<
-    Array<{ id: string; fullName: string; email: string }>
-  >([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [userList, setUserList] = useState<UsersResponseDto["data"]>([]);
+  const [stats, setStats] = useState<UserStatsResponse | null>(null);
   const [loadingUsers, setLoadingUsers] = useState(true);
+  const [loadingStats, setLoadingStats] = useState(true);
 
-  // Fetch list of users
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await fetch(
-          "/api/users/admin/all?role=USER&limit=100",
-          {
-            headers: {
-              Authorization: `Bearer ${user?.sessionId}`,
-            },
-          },
-        );
+  const fetchDashboardData = useCallback(async () => {
+    if (user?.role !== "ADMIN") return;
 
-        if (response.ok) {
-          const data = await response.json();
-          setUserList(data.data || []);
-        }
-      } catch (error) {
-        console.error("Failed to fetch users:", error);
-        toast.error("Failed to load users");
-      } finally {
-        setLoadingUsers(false);
-      }
-    };
+    setIsRefreshing(true);
+    try {
+      const [usersResponse, statsResponse] = await Promise.all([
+        userService.getAllUsers({
+          role: "USER",
+          limit: 100,
+          sortBy: "createdAt",
+          sortOrder: "desc",
+        }),
+        userService.getUserStats(),
+      ]);
 
-    if (user?.role === "ADMIN") {
-      fetchUsers();
+      setUserList(usersResponse.data);
+      setStats(statsResponse);
+    } catch (error: unknown) {
+      const apiError = error as ApiError;
+      toast.error(apiError.message || "Failed to refresh dashboard");
+    } finally {
+      setLoadingUsers(false);
+      setLoadingStats(false);
+      setIsRefreshing(false);
     }
   }, [user]);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
 
   const fetchUserDashboard = async (userId: string) => {
     setIsLoading(true);
@@ -65,198 +75,118 @@ export const AdminDashboard = () => {
   const handleSelectUser = (userId: string) => {
     setSelectedUserId(userId);
     fetchUserDashboard(userId);
+    setIsModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedUserId(null);
+    setUserData(null);
   };
 
   const handleUploadSuccess = () => {
     if (selectedUserId) {
       fetchUserDashboard(selectedUserId);
+      fetchDashboardData(); // Refresh stats
     }
   };
 
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* User List Sidebar */}
-        <div className="lg:col-span-1">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-              Users
-            </h2>
+  const handleRefresh = () => {
+    fetchDashboardData();
+    if (selectedUserId && isModalOpen) {
+      fetchUserDashboard(selectedUserId);
+    }
+  };
 
-            {loadingUsers ? (
-              <div className="text-center py-4">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600 mx-auto"></div>
-              </div>
-            ) : userList.length === 0 ? (
-              <p className="text-gray-600 dark:text-gray-400 text-center py-4">
-                No users found
+  const totalImages = userList.reduce((acc, u) => acc + (u.imageCount || 0), 0);
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+          <div className="flex items-center space-x-3 mb-4 md:mb-0">
+            <div className="p-3 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl shadow-lg">
+              <LayoutDashboard className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                Admin Dashboard
+              </h1>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Manage users and monitor platform activity
               </p>
-            ) : (
-              <div className="space-y-2 max-h-96 overflow-y-auto">
-                {userList.map((u) => (
-                  <button
-                    key={u.id}
-                    onClick={() => handleSelectUser(u.id)}
-                    className={`w-full text-left p-3 rounded-md transition-colors ${
-                      selectedUserId === u.id
-                        ? "bg-purple-50 dark:bg-purple-900/20 border-2 border-purple-500"
-                        : "hover:bg-gray-100 dark:hover:bg-gray-700 border-2 border-transparent"
-                    }`}
-                  >
-                    <p className="font-medium text-gray-900 dark:text-white">
-                      {u.fullName}
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {u.email}
-                    </p>
-                  </button>
-                ))}
+            </div>
+          </div>
+
+          <button
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+          >
+            <RefreshCw
+              className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`}
+            />
+            {isRefreshing ? "Refreshing..." : "Refresh Dashboard"}
+          </button>
+        </div>
+
+        {/* Stats Cards */}
+        <StatsCards
+          stats={stats}
+          totalImages={totalImages}
+          isLoading={loadingStats}
+        />
+
+        {/* Recent Activity */}
+        {stats && !loadingStats && (
+          <RecentActivity
+            users={stats.recent.users}
+            admins={stats.recent.admins}
+          />
+        )}
+
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* User List */}
+          <div className="lg:col-span-1">
+            <UserList
+              users={userList}
+              selectedUserId={selectedUserId}
+              onSelectUser={handleSelectUser}
+              isLoading={loadingUsers}
+              totalUsers={stats?.total.users || 0}
+              isRefreshing={isRefreshing}
+            />
+          </div>
+
+          {/* Quick Preview (TEST ONLY) */}
+          <div className="lg:col-span-2">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 text-center h-full flex items-center justify-center">
+              <div>
+                <LayoutDashboard className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                  Select a User
+                </h3>
+                <p className="text-gray-500 dark:text-gray-400 max-w-sm">
+                  Click on any user from the list to view their detailed
+                  information, upload images, and manage their data.
+                </p>
               </div>
-            )}
+            </div>
           </div>
         </div>
 
-        {/* User Details */}
-        <div className="lg:col-span-2">
-          {selectedUserId ? (
-            <div className="space-y-6">
-              {/* Upload Image Section */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-                  Upload Image to User
-                </h2>
-                <UploadImageForm
-                  userId={selectedUserId}
-                  onSuccess={handleUploadSuccess}
-                />
-              </div>
-
-              {/* User Dashboard Data */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-                  User&apos;s Latest Data
-                </h2>
-
-                {isLoading ? (
-                  <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
-                    <p className="mt-2 text-gray-600 dark:text-gray-400">
-                      Loading...
-                    </p>
-                  </div>
-                ) : userData ? (
-                  <div className="space-y-6">
-                    {/* User Info */}
-                    <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                      <h3 className="font-medium text-gray-900 dark:text-white mb-2">
-                        {userData.user.name}
-                      </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {userData.user.email}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        Member since:{" "}
-                        {new Date(
-                          userData.user.memberSince,
-                        ).toLocaleDateString()}
-                      </p>
-                    </div>
-
-                    {/* Company Data */}
-                    {userData.mostRecentSubmission ? (
-                      <div className="space-y-3">
-                        <h4 className="font-medium text-gray-900 dark:text-white">
-                          Most Recent Company Data
-                        </h4>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded">
-                            <p className="text-xs text-gray-600 dark:text-gray-400">
-                              Company
-                            </p>
-                            <p className="font-medium text-gray-900 dark:text-white">
-                              {userData.mostRecentSubmission.companyName}
-                            </p>
-                          </div>
-                          <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded">
-                            <p className="text-xs text-gray-600 dark:text-gray-400">
-                              Users
-                            </p>
-                            <p className="font-medium text-gray-900 dark:text-white">
-                              {userData.mostRecentSubmission.numberOfUsers}
-                            </p>
-                          </div>
-                          <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded">
-                            <p className="text-xs text-gray-600 dark:text-gray-400">
-                              Products
-                            </p>
-                            <p className="font-medium text-gray-900 dark:text-white">
-                              {userData.mostRecentSubmission.numberOfProducts}
-                            </p>
-                          </div>
-                          <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded">
-                            <p className="text-xs text-purple-600 dark:text-purple-400">
-                              Percentage
-                            </p>
-                            <p className="font-bold text-purple-700 dark:text-purple-300">
-                              {userData.mostRecentSubmission.percentage}%
-                            </p>
-                          </div>
-                        </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          Submitted:{" "}
-                          {new Date(
-                            userData.mostRecentSubmission.submittedAt,
-                          ).toLocaleString()}
-                        </p>
-                      </div>
-                    ) : (
-                      <p className="text-gray-600 dark:text-gray-400 text-center py-4">
-                        No company data submitted yet
-                      </p>
-                    )}
-
-                    {/* Recent Image */}
-                    {userData.recentImage && (
-                      <div className="space-y-3">
-                        <h4 className="font-medium text-gray-900 dark:text-white">
-                          Most Recent Image
-                        </h4>
-                        <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                          <Image
-                            src={userData.recentImage.url}
-                            alt="User upload"
-                            className="max-h-48 rounded-lg mx-auto"
-                          />
-                          <div className="mt-3 text-sm text-gray-600 dark:text-gray-400">
-                            <p>
-                              Uploaded by: {userData.recentImage.uploadedBy}
-                            </p>
-                            <p>
-                              Uploaded:{" "}
-                              {new Date(
-                                userData.recentImage.uploadedAt,
-                              ).toLocaleString()}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <p className="text-gray-600 dark:text-gray-400 text-center py-4">
-                    Select a user to view their data
-                  </p>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-12 text-center">
-              <p className="text-gray-600 dark:text-gray-400">
-                Select a user from the list to view their data and upload images
-              </p>
-            </div>
-          )}
-        </div>
+        {/* User Details Modal */}
+        <UserDetailsModal
+          isOpen={isModalOpen}
+          onClose={handleModalClose}
+          userId={selectedUserId || ""}
+          userData={userData}
+          isLoading={isLoading}
+          onRefresh={() => selectedUserId && fetchUserDashboard(selectedUserId)}
+          onUploadSuccess={handleUploadSuccess}
+        />
       </div>
     </div>
   );
