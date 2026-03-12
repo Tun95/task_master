@@ -32,7 +32,7 @@ export class UserController {
     private readonly logger: LoggerService,
   ) {}
 
-  // ============ USER A: COMPANY DATA ENDPOINTS ============
+  // ============  COMPANY DATA ENDPOINTS ============
 
   @Post('company-data')
   async createCompanyData(
@@ -60,7 +60,7 @@ export class UserController {
     return this.userService.updateCompanyData(user.id, updateDto);
   }
 
-  // ============ USER B: IMAGE UPLOAD ENDPOINTS ============
+  // ============ IMAGE UPLOAD ENDPOINTS ============
 
   @Post('admin/upload-to-user/:userId')
   @Roles('ADMIN')
