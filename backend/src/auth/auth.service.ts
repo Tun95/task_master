@@ -165,15 +165,6 @@ export class AuthService implements OnModuleInit {
 
   async registerAdmin(dto: RegisterAdminDto, context?: any) {
     try {
-      // Verify admin secret key
-      if (dto.adminSecret !== this.config.adminSecretKey) {
-        this.logger.warn(
-          `Invalid admin secret attempt for email: ${dto.email}`,
-          'AuthService',
-        );
-        throw new UnauthorizedException('Invalid admin registration secret');
-      }
-
       // Check if admin exists in DB
       const existingAdmin = await this.prisma.admin.findUnique({
         where: { email: dto.email },

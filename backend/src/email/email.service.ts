@@ -89,33 +89,20 @@ export class EmailService {
         text: options.text,
         cc: options.cc,
         bcc: options.bcc,
-        attachments: options.attachments as any, // Type assertion
+        attachments: options.attachments as any,
       };
 
-      if (!this.config.isProduction) {
-        // In development, log the email instead of sending
-        this.logger.debug(
-          `📧 Email would be sent in production:
-          To: ${recipients}
-          Subject: ${options.subject}
-          HTML: ${options.html.substring(0, 200)}...
-        `,
-          'EmailService',
-        );
+      // Log that email is being sent (without showing full HTML)
+      this.logger.log(
+        `📧 Sending email to ${recipients} - Subject: ${options.subject}`,
+        'EmailService',
+      );
 
-        // Return mock success
-        return {
-          success: true,
-          messageId: `mock-${Date.now()}`,
-          preview: `Email preview - To: ${recipients}, Subject: ${options.subject}`,
-        };
-      }
-
-      // In production, actually send
+      // Actually send the email in ALL environments
       const info = await this.transporter.sendMail(mailOptions);
 
       this.logger.log(
-        `Email sent successfully to ${recipients}`,
+        `✅ Email sent successfully to ${recipients} - MessageId: ${info.messageId}`,
         'EmailService',
       );
 

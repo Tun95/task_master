@@ -7,9 +7,17 @@ import { RequestLoggerMiddleware } from './common/middleware/logger.middleware';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from 'config/config.module';
+import { CronModule } from './cron/cron.module';
 
 @Module({
-  imports: [ConfigModule, AuthModule, PrismaModule, LoggerModule, EmailModule],
+  imports: [
+    ConfigModule,
+    AuthModule,
+    PrismaModule,
+    LoggerModule,
+    EmailModule,
+    CronModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
