@@ -16,6 +16,7 @@ import { LoginDto } from './dto/login.dto';
 import * as crypto from 'crypto';
 import { ConfigService } from 'config/config.service';
 import { getFirebaseAuth } from 'config/firebase.config';
+import axios from 'axios';
 
 @Injectable()
 export class AuthService implements OnModuleInit {
@@ -278,7 +279,6 @@ export class AuthService implements OnModuleInit {
       const accountType = user ? 'user' : 'admin';
       const account = user || admin;
 
-      // Type guard to ensure account is not null
       if (!account) {
         throw new UnauthorizedException('Account not found');
       }
@@ -335,7 +335,6 @@ export class AuthService implements OnModuleInit {
       const session = await this.sessionService.createSession({
         firebaseUid,
         email: dto.email,
-        token: dto.firebaseToken || '', // Client should send Firebase ID token
         ipAddress: context?.ipAddress,
         userAgent: context?.userAgent,
         location: context?.locationData,
@@ -383,6 +382,7 @@ export class AuthService implements OnModuleInit {
             role: user.role,
           },
           sessionId: session.id,
+          token: session.token,
           accountType: 'user',
           hasCompanyData: !!user.companyData,
         };
@@ -396,6 +396,7 @@ export class AuthService implements OnModuleInit {
             role: admin.role,
           },
           sessionId: session.id,
+          token: session.token,
           accountType: 'admin',
         };
       }
@@ -409,7 +410,22 @@ export class AuthService implements OnModuleInit {
 
   async logout(token: string) {
     try {
-      await this.sessionService.invalidateSession(token);
+      // First, get the session to find the actual token
+      const session = await this.prisma.session.findFirst({
+        where: {
+          OR: [{ id: token }, { token: token }],
+          isActive: true,
+        },
+      });
+
+      if (!session) {
+        // If no session found, try to invalidate by token anyway
+        await this.sessionService.invalidateSession(token);
+      } else {
+        // Invalidate using the session's token
+        await this.sessionService.invalidateSession(session.token);
+      }
+
       this.logger.activity('LOGOUT', undefined, { token });
       return { message: 'Logged out successfully' };
     } catch (error) {
@@ -646,44 +662,95 @@ export class AuthService implements OnModuleInit {
 
   async resetPassword(oobCode: string, newPassword: string) {
     try {
-      // Verify the OOB code (Firebase reset code)
-      let email: string;
-      try {
-        email = await this.firebaseAuth.verifyPasswordResetCode(oobCode);
-        this.logger.log(
-          `Password reset verified for email: ${email}`,
-          'AuthService',
+      this.logger.log(`Processing password reset with OOB code`, 'AuthService');
+
+      const apiKey = this.config.firebase.firebaseApiKey;
+
+      if (!apiKey) {
+        throw new InternalServerErrorException(
+          'Firebase API key not configured',
         );
-      } catch (error: any) {
-        this.logger.warn(
-          `Invalid password reset token attempt: ${error.message}`,
-          'AuthService',
-        );
-        throw new BadRequestException('Invalid or expired reset token');
       }
 
-      // Confirm password reset
-      await this.firebaseAuth.confirmPasswordReset(oobCode, newPassword);
+      // Step 1: Verify OOB code and get email
+      const verifyResponse = await axios.post(
+        `https://identitytoolkit.googleapis.com/v1/accounts:resetPassword?key=${apiKey}`,
+        { oobCode },
+      );
 
-      this.logger.activity('PASSWORD_RESET_COMPLETED', undefined, {
+      const email = verifyResponse.data.email;
+      this.logger.log(
+        `Password reset verified for email: ${email}`,
+        'AuthService',
+      );
+
+      // Step 2: Reset password
+      await axios.post(
+        `https://identitytoolkit.googleapis.com/v1/accounts:resetPassword?key=${apiKey}`,
+        {
+          oobCode,
+          newPassword,
+        },
+      );
+
+      // Find user or admin
+      const user = await this.prisma.user.findUnique({ where: { email } });
+      const admin = await this.prisma.admin.findUnique({ where: { email } });
+      const account = user || admin;
+      const firebaseUid = account?.firebaseUid;
+
+      if (firebaseUid) {
+        // IMPORTANT: Revoke all refresh tokens for this user in Firebase
+        // This forces all existing tokens to become invalid
+        await this.firebaseAuth.revokeRefreshTokens(firebaseUid);
+        this.logger.log(
+          `Revoked all refresh tokens for user ${firebaseUid}`,
+          'AuthService',
+        );
+
+        // Invalidate all sessions in your database
+        await this.sessionService.invalidateAllUserSessions(firebaseUid);
+        this.logger.log(
+          `Invalidated all sessions for user after password reset`,
+          'AuthService',
+        );
+
+        // Update user's password change timestamp in your database (optional)
+        if (user) {
+          await this.prisma.user.update({
+            where: { id: user.id },
+            data: { updatedAt: new Date() },
+          });
+        } else if (admin) {
+          await this.prisma.admin.update({
+            where: { id: admin.id },
+            data: { updatedAt: new Date() },
+          });
+        }
+      }
+
+      this.logger.activity('PASSWORD_RESET_COMPLETED', account?.id, {
         resetTokenUsed: true,
         email,
       });
 
       return {
-        message: 'Password has been reset successfully',
+        message:
+          'Password has been reset successfully. You can now log in with your new password.',
       };
     } catch (error: any) {
-      this.logger.error('Password reset failed', error.stack, 'AuthService');
-
-      // Handle specific Firebase errors
-      if (error.code === 'auth/expired-oob-code') {
-        throw new BadRequestException('Reset link has expired');
-      } else if (error.code === 'auth/invalid-oob-code') {
-        throw new BadRequestException('Invalid reset link');
+      if (error.response?.data?.error?.message === 'EXPIRED_OOB_CODE') {
+        throw new BadRequestException(
+          'Reset link has expired. Please request a new one.',
+        );
+      } else if (error.response?.data?.error?.message === 'INVALID_OOB_CODE') {
+        throw new BadRequestException(
+          'Invalid reset link. Please request a new one.',
+        );
       }
 
-      throw error;
+      this.logger.error('Password reset failed', error.stack, 'AuthService');
+      throw new BadRequestException('Invalid or expired reset token');
     }
   }
 }

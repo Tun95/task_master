@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { LoggerService } from '../common/logger/logger.service';
 import { PrismaService } from 'src/prisma/prisma.service';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class SessionService {
@@ -9,11 +10,14 @@ export class SessionService {
     private logger: LoggerService,
   ) {}
 
+  // Generate a unique session token
+  private generateSessionToken(): string {
+    return `sess_${crypto.randomBytes(32).toString('hex')}`;
+  }
+
   async createSession(data: {
     firebaseUid: string;
     email: string;
-    token: string;
-    refreshToken?: string;
     ipAddress?: string;
     userAgent?: string;
     location?: any;
@@ -28,13 +32,15 @@ export class SessionService {
     const expiresAt = new Date();
     expiresAt.setSeconds(expiresAt.getSeconds() + (data.expiresIn || 604800));
 
+    // Generate a unique token
+    const sessionToken = this.generateSessionToken();
+
     // Create new session
     const session = await this.prisma.session.create({
       data: {
         firebaseUid: data.firebaseUid,
         email: data.email,
-        token: data.token,
-        refreshToken: data.refreshToken,
+        token: sessionToken,
         ipAddress: data.ipAddress,
         userAgent: data.userAgent,
         location: data.location || {},
