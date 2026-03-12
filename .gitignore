@@ -5,6 +5,7 @@ build
 
 # files
 starlab-1e23a.json
+/config/firebase-service-account.json
 
 # Logs
 logs
