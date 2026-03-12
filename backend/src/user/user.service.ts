@@ -6,6 +6,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { CreateCompanyDataDto } from './dto/company-data.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { CloudinaryService } from '@/cloudinary/cloudinary.service';
 import { UserFilterDto } from './dto/user-filter.dto';
 
@@ -201,10 +202,26 @@ export class UserService {
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
         include: {
-          companyData: true,
+          companyData: {
+            orderBy: {
+              createdAt: 'desc',
+            },
+            take: 1, // Get most recent company data
+          } as any,
           receivedImages: {
+            orderBy: {
+              createdAt: 'desc',
+            },
             take: 10,
-            orderBy: { createdAt: 'desc' },
+            include: {
+              uploadedBy: {
+                select: {
+                  id: true,
+                  fullName: true,
+                  email: true,
+                },
+              },
+            },
           },
         },
       });
@@ -217,6 +234,23 @@ export class UserService {
     } else {
       const admin = await this.prisma.admin.findUnique({
         where: { id: userId },
+        include: {
+          uploadedImages: {
+            orderBy: {
+              createdAt: 'desc',
+            },
+            take: 10,
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  fullName: true,
+                  email: true,
+                },
+              },
+            },
+          },
+        },
       });
 
       if (!admin) {
@@ -227,7 +261,116 @@ export class UserService {
     }
   }
 
-  // ============  (ADMIN): IMAGE UPLOAD METHODS ============
+  async updateProfile(
+    userId: string,
+    userType: string,
+    updateDto: UpdateProfileDto,
+  ) {
+    // Check if user exists based on type
+    if (userType === 'user') {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      // Check if email is being updated and if it's already taken
+      if (updateDto.email && updateDto.email !== user.email) {
+        const existingUser = await this.prisma.user.findUnique({
+          where: { email: updateDto.email },
+        });
+
+        if (existingUser) {
+          throw new BadRequestException('Email already in use');
+        }
+
+        const existingAdmin = await this.prisma.admin.findUnique({
+          where: { email: updateDto.email },
+        });
+
+        if (existingAdmin) {
+          throw new BadRequestException('Email already in use');
+        }
+      }
+
+      // Update user
+      const updatedUser = await this.prisma.user.update({
+        where: { id: userId },
+        data: updateDto,
+        include: {
+          companyData: {
+            orderBy: {
+              createdAt: 'desc',
+            },
+            take: 1,
+          } as any,
+          receivedImages: {
+            orderBy: {
+              createdAt: 'desc',
+            },
+            take: 5,
+          },
+        },
+      });
+
+      this.logger.activity('PROFILE_UPDATED', userId, {
+        updates: Object.keys(updateDto),
+      });
+
+      return updatedUser;
+    } else {
+      const admin = await this.prisma.admin.findUnique({
+        where: { id: userId },
+      });
+
+      if (!admin) {
+        throw new NotFoundException('Admin not found');
+      }
+
+      // Check if email is being updated and if it's already taken
+      if (updateDto.email && updateDto.email !== admin.email) {
+        const existingUser = await this.prisma.user.findUnique({
+          where: { email: updateDto.email },
+        });
+
+        if (existingUser) {
+          throw new BadRequestException('Email already in use');
+        }
+
+        const existingAdmin = await this.prisma.admin.findUnique({
+          where: { email: updateDto.email },
+        });
+
+        if (existingAdmin) {
+          throw new BadRequestException('Email already in use');
+        }
+      }
+
+      // Update admin
+      const updatedAdmin = await this.prisma.admin.update({
+        where: { id: userId },
+        data: updateDto,
+        include: {
+          uploadedImages: {
+            orderBy: {
+              createdAt: 'desc',
+            },
+            take: 5,
+          },
+        },
+      });
+
+      this.logger.activity('ADMIN_PROFILE_UPDATED', userId, {
+        updates: Object.keys(updateDto),
+      });
+
+      return updatedAdmin;
+    }
+  }
+
+  // ============ (ADMIN): IMAGE UPLOAD METHODS ============
   async uploadImageToUser(
     adminId: string,
     userId: string,
@@ -242,7 +385,7 @@ export class UserService {
       throw new NotFoundException('Target user not found');
     }
 
-    // Check if admin exists ()
+    // Check if admin exists
     const admin = await this.prisma.admin.findUnique({
       where: { id: adminId },
     });
@@ -296,7 +439,7 @@ export class UserService {
     };
   }
 
-  // ============  (ADMIN): VIEW USER DATA ============
+  // ============ (ADMIN): VIEW USER DATA ============
   async getUserDashboard(userId: string) {
     // Get the most recent company data submission
     const companyData = await this.prisma.companyData.findFirst({
@@ -304,7 +447,7 @@ export class UserService {
       orderBy: { createdAt: 'desc' },
     });
 
-    // Getthe  most recent image
+    // Get the most recent image
     const recentImage = await this.prisma.image.findFirst({
       where: { userId },
       orderBy: { createdAt: 'desc' },

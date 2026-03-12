@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Body,
   Param,
   Query,
@@ -18,6 +19,7 @@ import { Roles } from '@/utils/common/decorators/roles.decorator';
 import { User } from '@/utils/common/decorators/user.decorator';
 import { CreateCompanyDataDto } from './dto/company-data.dto';
 import { UserFilterDto } from './dto/user-filter.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Controller('users')
 @UseGuards(FirebaseAuthGuard, RolesGuard)
@@ -38,7 +40,42 @@ export class UserController {
     return this.userService.createCompanyData(user.id, createDto);
   }
 
+  @Get('profile/:userId')
+  async getProfile(@User() currentUser: any, @Param('userId') userId: string) {
+    // Ensure users can only access their own profile
+    if (currentUser.role !== 'ADMIN' && currentUser.id !== userId) {
+      throw new Error('Unauthorized access to profile');
+    }
+
+    this.logger.activity('GET_PROFILE', currentUser.id, {
+      targetUserId: userId,
+    });
+    return this.userService.getProfile(userId, currentUser.role.toLowerCase());
+  }
+
+  @Patch('profile/:userId')
+  async updateProfile(
+    @User() currentUser: any,
+    @Param('userId') userId: string,
+    @Body() updateDto: UpdateProfileDto,
+  ) {
+    // Ensure users can only update their own profile
+    if (currentUser.role !== 'ADMIN' && currentUser.id !== userId) {
+      throw new Error('Unauthorized access to profile');
+    }
+
+    this.logger.activity('UPDATE_PROFILE', currentUser.id, {
+      targetUserId: userId,
+    });
+    return this.userService.updateProfile(
+      userId,
+      currentUser.role.toLowerCase(),
+      updateDto,
+    );
+  }
+
   // ============ ADMIN ENDPOINTS ============
+
   @Get('admin/users/stats')
   @Roles('ADMIN')
   async getUserStats() {
@@ -60,6 +97,30 @@ export class UserController {
   async getUserById(@Param('userId') userId: string) {
     this.logger.activity('ADMIN_GET_USER_BY_ID', undefined, { userId });
     return this.userService.getUserById(userId);
+  }
+
+  // Admin can view any user's profile
+  @Get('admin/profile/:userId')
+  @Roles('ADMIN')
+  async getAdminUserProfile(@Param('userId') userId: string) {
+    this.logger.activity('ADMIN_GET_USER_PROFILE', undefined, {
+      targetUserId: userId,
+    });
+    return this.userService.getProfile(userId, 'user');
+  }
+
+  // Admin can update any user's profile
+  @Patch('admin/profile/:userId')
+  @Roles('ADMIN')
+  async updateAdminUserProfile(
+    @Param('userId') userId: string,
+    @Body() updateDto: UpdateProfileDto,
+  ) {
+    this.logger.activity('ADMIN_UPDATE_USER_PROFILE', undefined, {
+      targetUserId: userId,
+      updates: updateDto,
+    });
+    return this.userService.updateProfile(userId, 'user', updateDto);
   }
 
   @Post('admin/upload-to-user/:userId')

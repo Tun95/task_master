@@ -4,6 +4,14 @@ import {
   CompanyData,
   UserDashboardResponse,
   UploadImageResponse,
+  UsersResponseDto,
+  UserFilterDto,
+  UserStatsResponse,
+  ProfileResponse,
+  AdminProfileResponse,
+  UpdateProfileDto,
+  UserWithDetails,
+  AdminWithDetails,
 } from "../types/user.types";
 import { authService } from "./authService";
 import { ErrorResponse } from "../types/auth.types";
@@ -40,12 +48,100 @@ class UserService {
     throw { message };
   }
 
+  // ============ USER ENDPOINTS ============
+
   // User A: Submit company data
   async createCompanyData(
     data: CreateCompanyDataDto,
   ): Promise<{ message: string; data: CompanyData }> {
     try {
       const response = await this.api.post("/api/users/company-data", data);
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error as AxiosError<ErrorResponse>);
+    }
+  }
+
+  // Get current user's profile
+  async getProfile(): Promise<ProfileResponse | AdminProfileResponse> {
+    try {
+      const userInfo = authService.getUserInfo();
+      if (!userInfo?.id) {
+        throw new Error("No user logged in");
+      }
+
+      // Determine endpoint based on user role
+      const endpoint =
+        userInfo.role === "ADMIN"
+          ? `/api/users/admin/profile/${userInfo.id}`
+          : `/api/users/profile/${userInfo.id}`;
+
+      const response = await this.api.get(endpoint);
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error as AxiosError<ErrorResponse>);
+    }
+  }
+
+  // Update current user's profile
+  async updateProfile(
+    data: UpdateProfileDto,
+  ): Promise<ProfileResponse | AdminProfileResponse> {
+    try {
+      const userInfo = authService.getUserInfo();
+      if (!userInfo?.id) {
+        throw new Error("No user logged in");
+      }
+
+      const endpoint =
+        userInfo.role === "ADMIN"
+          ? `/api/users/admin/profile/${userInfo.id}`
+          : `/api/users/profile/${userInfo.id}`;
+
+      const response = await this.api.patch(endpoint, data);
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error as AxiosError<ErrorResponse>);
+    }
+  }
+
+  // ============ ADMIN ENDPOINTS ============
+
+  // Admin: Get user stats
+  async getUserStats(): Promise<UserStatsResponse> {
+    try {
+      const response = await this.api.get("/api/users/admin/users/stats");
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error as AxiosError<ErrorResponse>);
+    }
+  }
+
+  // Admin: Get all users with filtering
+  async getAllUsers(filter?: UserFilterDto): Promise<UsersResponseDto> {
+    try {
+      const params = new URLSearchParams();
+      if (filter) {
+        Object.entries(filter).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            params.append(key, value.toString());
+          }
+        });
+      }
+
+      const response = await this.api.get("/api/users/admin/users", { params });
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error as AxiosError<ErrorResponse>);
+    }
+  }
+
+  // Admin: Get user by ID
+  async getUserById(
+    userId: string,
+  ): Promise<UserWithDetails | AdminWithDetails> {
+    try {
+      const response = await this.api.get(`/api/users/admin/users/${userId}`);
       return response.data;
     } catch (error) {
       throw this.handleError(error as AxiosError<ErrorResponse>);
@@ -88,10 +184,18 @@ class UserService {
     }
   }
 
+  // ============ UTILITY METHODS ============
+
   // Get current user's ID
   getCurrentUserId(): string | null {
     const userInfo = authService.getUserInfo();
     return userInfo?.id || null;
+  }
+
+  // Get current user's role
+  getCurrentUserRole(): "USER" | "ADMIN" | null {
+    const userInfo = authService.getUserInfo();
+    return userInfo?.role || null;
   }
 
   // Check if current user is admin

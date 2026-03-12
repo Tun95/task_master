@@ -5,6 +5,7 @@ import { userService } from "@/api/services/userService";
 import { toast } from "sonner";
 import Image from "next/image";
 import { ApiError } from "@/api/types/auth.types";
+import { Loader2, Upload, X } from "lucide-react";
 
 interface UploadImageFormProps {
   userId: string;
@@ -77,26 +78,13 @@ export const UploadImageForm = ({
   return (
     <div className="space-y-4">
       {!preview ? (
-        <div className="flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-md">
+        <div className="flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-700 border-dashed rounded-lg hover:border-purple-500 dark:hover:border-purple-400 transition-colors duration-200">
           <div className="space-y-1 text-center">
-            <svg
-              className="mx-auto h-12 w-12 text-gray-400"
-              stroke="currentColor"
-              fill="none"
-              viewBox="0 0 48 48"
-              aria-hidden="true"
-            >
-              <path
-                d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                strokeWidth={2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            <Upload className="mx-auto h-12 w-12 text-gray-400" />
             <div className="flex text-sm text-gray-600 dark:text-gray-400">
               <label
                 htmlFor="file-upload"
-                className="relative cursor-pointer bg-white dark:bg-gray-800 rounded-md font-medium text-purple-600 hover:text-purple-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-purple-500"
+                className="relative cursor-pointer bg-white dark:bg-gray-900 rounded-md font-medium text-purple-600 hover:text-purple-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-purple-500 dark:text-purple-400 dark:hover:text-purple-300"
               >
                 <span>Upload an image</span>
                 <input
@@ -117,25 +105,39 @@ export const UploadImageForm = ({
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="relative">
+          <div className="relative rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
             <Image
               src={preview}
               alt="Preview"
-              className="max-h-64 rounded-lg mx-auto"
+              width={400}
+              height={300}
+              className="max-h-64 w-auto mx-auto"
             />
           </div>
           <div className="flex space-x-3">
             <button
               onClick={handleUpload}
               disabled={isUploading}
-              className="flex-1 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-purple-500 dark:hover:bg-purple-600 transition-colors duration-200"
             >
-              {isUploading ? "Uploading..." : "Upload Image"}
+              {isUploading ? (
+                <>
+                  <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
+                  Uploading...
+                </>
+              ) : (
+                <>
+                  <Upload className="-ml-1 mr-2 h-4 w-4" />
+                  Upload Image
+                </>
+              )}
             </button>
             <button
               onClick={handleCancel}
-              className="flex-1 py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+              disabled={isUploading}
+              className="flex-1 flex justify-center items-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
             >
+              <X className="-ml-1 mr-2 h-4 w-4" />
               Cancel
             </button>
           </div>
