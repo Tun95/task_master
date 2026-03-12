@@ -58,15 +58,15 @@ export class ConfigService {
   }
 
   get adminFrontendUrl(): string {
-    return process.env.ADMIN_FRONTEND_URL || 'http://localhost:3002';
+    return process.env.ADMIN_FRONTEND_URL || 'http://localhost:30001';
   }
 
   get backendUrl(): string {
-    return process.env.BACKEND_URL || 'http://localhost:3001';
+    return process.env.BACKEND_URL || 'http://localhost:5000';
   }
 
   get apiUrl(): string {
-    return process.env.API_URL || 'http://localhost:3001/api';
+    return process.env.API_URL || 'http://localhost:5000/api';
   }
 
   // Database Config
