@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { UploadImageForm } from "@/components/forms/UploadImageForm";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { UserDetailsModalProps } from "@/api/types/dashboard.types";
 
 // Define the tab type
@@ -39,6 +39,34 @@ export const UserDetailsModal = ({
   onUploadSuccess,
 }: UserDetailsModalProps) => {
   const [activeTab, setActiveTab] = useState<TabType>("overview");
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // Handle escape key press
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("keydown", handleEscape);
+      // Prevent body scroll when modal is open
+      document.body.style.overflow = "hidden";
+    }
+
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen, onClose]);
+
+  // Handle click outside
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
+      onClose();
+    }
+  };
 
   // Define tabs with proper typing
   const tabs: TabItem[] = [
@@ -50,16 +78,21 @@ export const UserDetailsModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity backdrop-blur-sm"
-        onClick={onClose}
-      />
+    <div
+      className="fixed inset-0 z-50 overflow-y-auto"
+      onClick={handleBackdropClick}
+    >
+      {/* Backdrop - lighter and with blur */}
+      <div className="fixed inset-0 bg-black/10 backdrop-blur-sm transition-opacity" />
 
-      {/* Modal */}
+      {/* Modal Container */}
       <div className="relative min-h-screen flex items-center justify-center p-4">
-        <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+        {/* Modal Content */}
+        <div
+          ref={modalRef}
+          className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden transform transition-all"
+          onClick={(e) => e.stopPropagation()}
+        >
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
             <div>
@@ -75,6 +108,7 @@ export const UserDetailsModal = ({
                 onClick={onRefresh}
                 disabled={isLoading}
                 className="p-2 text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                title="Refresh"
               >
                 <RefreshCw
                   className={`h-5 w-5 ${isLoading ? "animate-spin" : ""}`}
@@ -83,13 +117,14 @@ export const UserDetailsModal = ({
               <button
                 onClick={onClose}
                 className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                title="Close (Esc)"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
           </div>
 
-          {/* Tabs - Fixed typing issue */}
+          {/* Tabs */}
           <div className="border-b border-gray-200 dark:border-gray-700 px-6">
             <nav className="flex space-x-4">
               {tabs.map((tab) => (
