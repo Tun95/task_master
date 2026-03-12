@@ -6,10 +6,10 @@ import { ConfigService } from 'config/config.service';
 import { initializeFirebase } from 'config/firebase.config';
 
 async function bootstrap() {
-  // Create a temporary config service for Firebase initialization
+  // For Creating temporary config service for Firebase initialization
   const configService = new ConfigService();
 
-  // Initialize Firebase FIRST, before anything else
+  // To Initialize Firebase FIRST, before anything else
   try {
     initializeFirebase(configService);
     console.log('🔥 Firebase initialized successfully');

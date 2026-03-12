@@ -37,7 +37,6 @@ export const getFirebaseAuth = () => {
   return admin.auth();
 };
 
-// Optional: Export the app if needed elsewhere
 export const getFirebaseApp = () => {
   if (!admin.apps.length) {
     throw new Error('Firebase must be initialized before accessing app');
