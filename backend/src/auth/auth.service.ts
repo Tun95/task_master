@@ -700,7 +700,6 @@ export class AuthService implements OnModuleInit {
       const firebaseUid = account?.firebaseUid;
 
       if (firebaseUid) {
-        // IMPORTANT: Revoke all refresh tokens for this user in Firebase
         // This forces all existing tokens to become invalid
         await this.firebaseAuth.revokeRefreshTokens(firebaseUid);
         this.logger.log(

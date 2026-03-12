@@ -27,6 +27,7 @@ export class AuthController {
     private readonly logger: LoggerService,
   ) {}
 
+  // USER Register
   @Post('register/user')
   async registerUser(
     @Body() registerDto: RegisterUserDto,
@@ -41,6 +42,7 @@ export class AuthController {
     return this.authService.registerUser(registerDto, context);
   }
 
+  // Admin Register
   @Post('register/admin')
   async registerAdmin(
     @Body() registerDto: RegisterAdminDto,
@@ -55,6 +57,7 @@ export class AuthController {
     return this.authService.registerAdmin(registerDto, context);
   }
 
+  // Login
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(@Body() loginDto: LoginDto, @Req() req: Request) {
@@ -67,6 +70,7 @@ export class AuthController {
     return this.authService.login(loginDto, context);
   }
 
+  // Logout
   @Post('logout')
   @UseGuards(FirebaseAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -75,24 +79,28 @@ export class AuthController {
     return this.authService.logout(token);
   }
 
+  // Veriy otp
   @Post('verify-otp')
   @HttpCode(HttpStatus.OK)
   async verifyOtp(@Body() verifyDto: VerifyOtpDto) {
     return this.authService.verifyOtp(verifyDto.email, verifyDto.otp);
   }
 
+  // Resend OTP
   @Post('resend-otp')
   @HttpCode(HttpStatus.OK)
   async resendOtp(@Body() resendDto: ResendOtpDto) {
     return this.authService.resendOtp(resendDto.email);
   }
 
+  // Forgot password
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
   async forgotPassword(@Body() forgotDto: ForgotPasswordDto) {
     return this.authService.forgotPassword(forgotDto.email);
   }
 
+  // Reset Password
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
   async resetPassword(@Body() resetDto: ResetPasswordDto) {
