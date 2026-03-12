@@ -22,15 +22,12 @@ export class PrismaService
       connectionString: config.databaseUrl,
     });
 
-    // Use type assertion to bypass the type mismatch
     const adapter = new PrismaPg(pool as any);
 
     // Pass adapter to PrismaClient constructor
     super({
       adapter,
-      log: config.isDevelopment
-        ? ['query', 'info', 'warn', 'error']
-        : ['error'],
+      log: config.isDevelopment ? ['error'] : ['error'],
       errorFormat: config.isDevelopment ? 'pretty' : 'minimal',
     });
   }
