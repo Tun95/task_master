@@ -1,28 +1,36 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
+import { authService } from "@/api/services/authService";
+import { UserInfo } from "@/api/types/context.types";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { authService } from "@/api/services/authService";
-import { AuthContextType, UserInfo } from "@/api/types/context.types";
 import { ApiError } from "@/api/types/auth.types";
+
+interface AuthContextType {
+  user: UserInfo | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  isAdmin: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+}
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<UserInfo | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true); // Start with true
   const router = useRouter();
 
   useEffect(() => {
-    // Load user from storage on mount
+    // Check for existing session
     const loadUser = () => {
       try {
         const userInfo = authService.getUserInfo();
         setUser(userInfo);
-      } catch (err) {
-        console.error("Failed to load user:", err);
+      } catch (error) {
+        console.error("Failed to load user:", error);
       } finally {
         setIsLoading(false);
       }
@@ -32,27 +40,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const login = async (email: string, password: string) => {
-    setIsLoading(true);
-    setError(null);
     try {
+      setIsLoading(true);
       const response = await authService.login({ email, password });
 
+      // Get the updated user info
       const userInfo = authService.getUserInfo();
       setUser(userInfo);
 
-      toast.success("Login successful!");
+      toast.success(response.message || "Login successful!");
 
       // Redirect based on role
-      if (response.accountType === "admin") {
+      if (userInfo?.role === "ADMIN") {
         router.push("/admin/dashboard");
       } else {
         router.push("/dashboard");
       }
-    } catch (error: unknown) {
+    } catch (error) {
       const apiError = error as ApiError;
-      const errorMessage = apiError.message || "Login failed";
-      setError(errorMessage);
-      toast.error(errorMessage);
+      toast.error(apiError.message || "Login failed");
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -60,24 +67,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const logout = async () => {
     try {
+      setIsLoading(true);
       await authService.logout();
       setUser(null);
       toast.success("Logged out successfully");
       router.push("/login");
-    } catch (error: unknown) {
+    } catch (error) {
       console.error("Logout error:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const value = {
     user,
     isLoading,
-    error,
-    login,
-    logout,
     isAuthenticated: !!user,
     isAdmin: user?.role === "ADMIN",
-    isUser: user?.role === "USER",
+    login,
+    logout,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -1,4 +1,5 @@
 import { AdminDashboard } from "@/screens/admin/AdminDashboard";
+import { ProtectedRoute } from "@/utils/ProtectedRoute";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function AdminDashboardPage() {
-  return <AdminDashboard />;
+  return (
+    <ProtectedRoute requiredRole="ADMIN">
+      <AdminDashboard />
+    </ProtectedRoute>
+  );
 }

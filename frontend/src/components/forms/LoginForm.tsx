@@ -3,10 +3,12 @@
 import { useFormik } from "formik";
 import { loginSchema } from "@/schemas";
 import { useAuth } from "@/context/AuthContext";
-import { Loader2 } from "lucide-react"; // Add this icon
+import { Loader2 } from "lucide-react";
+import { useState } from "react";
 
 export const LoginForm = () => {
   const { login, isLoading } = useAuth();
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const formik = useFormik({
     initialValues: {
@@ -14,13 +16,26 @@ export const LoginForm = () => {
       password: "",
     },
     validationSchema: loginSchema,
-    onSubmit: async (values) => {
-      await login(values.email, values.password);
+    onSubmit: async (values, { setSubmitting }) => {
+      try {
+        setSubmitError(null);
+        await login(values.email, values.password);
+      } catch {
+        setSubmitError("Invalid email or password");
+      } finally {
+        setSubmitting(false);
+      }
     },
   });
 
   return (
     <form onSubmit={formik.handleSubmit} className="space-y-6">
+      {submitError && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+          <p className="text-sm text-red-600">{submitError}</p>
+        </div>
+      )}
+
       <div>
         <label
           htmlFor="email"
