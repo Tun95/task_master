@@ -18,37 +18,65 @@ export const StatsCard = ({
   color,
   trend,
   trendLabel,
-}: StatsCardProps) => (
-  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
-    <div className="flex items-center justify-between">
-      <div>
-        <p className="text-sm font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-          {title}
-        </p>
-        <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
-          {value.toLocaleString()}
-        </p>
-        {trend !== undefined && (
-          <div className="flex items-center mt-2">
-            {trend > 0 ? (
-              <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-            ) : (
-              <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
-            )}
-            <span
-              className={`text-sm ${trend > 0 ? "text-green-500" : "text-red-500"}`}
-            >
-              {Math.abs(trend)}% {trendLabel || "vs last month"}
-            </span>
-          </div>
-        )}
-      </div>
-      <div className={`p-4 rounded-2xl ${color} bg-opacity-10`}>
-        <Icon className={`h-8 w-8 ${color.replace("bg-", "text-")}`} />
+}: StatsCardProps) => {
+  // Map background colors to corresponding text colors with higher contrast
+  const getTextColor = (bgColor: string) => {
+    const colorMap: Record<string, string> = {
+      "bg-blue-500": "text-blue-600 dark:text-blue-400",
+      "bg-purple-500": "text-purple-600 dark:text-purple-400",
+      "bg-green-500": "text-green-600 dark:text-green-400",
+      "bg-orange-500": "text-orange-600 dark:text-orange-400",
+      "bg-red-500": "text-red-600 dark:text-red-400",
+      "bg-yellow-500": "text-yellow-600 dark:text-yellow-400",
+    };
+    return colorMap[bgColor] || "text-gray-600 dark:text-gray-400";
+  };
+
+  // Map background colors to lighter background tints
+  const getBgTint = (bgColor: string) => {
+    const tintMap: Record<string, string> = {
+      "bg-blue-500": "bg-blue-50 dark:bg-blue-950/30",
+      "bg-purple-500": "bg-purple-50 dark:bg-purple-950/30",
+      "bg-green-500": "bg-green-50 dark:bg-green-950/30",
+      "bg-orange-500": "bg-orange-50 dark:bg-orange-950/30",
+      "bg-red-500": "bg-red-50 dark:bg-red-950/30",
+      "bg-yellow-500": "bg-yellow-50 dark:bg-yellow-950/30",
+    };
+    return tintMap[bgColor] || "bg-gray-50 dark:bg-gray-800";
+  };
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+            {title}
+          </p>
+          <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
+            {value.toLocaleString()}
+          </p>
+          {trend !== undefined && (
+            <div className="flex items-center mt-2">
+              {trend > 0 ? (
+                <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+              ) : (
+                <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
+              )}
+              <span
+                className={`text-sm ${trend > 0 ? "text-green-500" : "text-red-500"}`}
+              >
+                {Math.abs(trend)}% {trendLabel || "vs last month"}
+              </span>
+            </div>
+          )}
+        </div>
+        <div className={`p-4 rounded-2xl ${getBgTint(color)}`}>
+          <Icon className={`h-8 w-8 ${getTextColor(color)}`} />
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 export const StatsCardSkeleton = () => (
   <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 animate-pulse">
