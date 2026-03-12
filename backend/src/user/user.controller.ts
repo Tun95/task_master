@@ -76,6 +76,7 @@ export class UserController {
     return this.userService.uploadImageToUser(admin.id, userId, file);
   }
 
+  // REMOVE
   @Get('admin/user-images/:userId')
   @Roles('ADMIN')
   async getUserImages(@Param('userId') userId: string) {
@@ -83,6 +84,7 @@ export class UserController {
     return this.userService.getUserImages(userId);
   }
 
+  // REMOVE
   @Get('admin/user-recent-image/:userId')
   @Roles('ADMIN')
   async getMostRecentImage(@Param('userId') userId: string) {
