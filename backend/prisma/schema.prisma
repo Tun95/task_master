@@ -5,7 +5,6 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
-
 model User {
   id            String        @id @default(cuid())
   email         String        @unique
@@ -16,7 +15,8 @@ model User {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   
-  companyData   CompanyData?
+  // Changed from CompanyData? to CompanyData[] for one-to-many
+  companyData   CompanyData[]
   
   receivedImages Image[]
   
@@ -76,11 +76,14 @@ model CompanyData {
   companyName     String
   numberOfUsers   Int
   numberOfProducts Int
-  percentage      Float    // Calculated field (numberOfProducts / numberOfUsers * 100)
-  userId          String   @unique
+  percentage      Float
+  userId          String
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+  @@index([createdAt])
 }
 
 model Image {
