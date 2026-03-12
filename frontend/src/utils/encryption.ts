@@ -34,7 +34,7 @@ export const encryptData = (data: unknown): string => {
 export const decryptData = (encryptedData: string): UserInfo | null => {
   try {
     const bytes = CryptoJS.AES.decrypt(encryptedData, ENCRYPTION_KEY);
-    const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+    const decrypted = bytes?.toString(CryptoJS.enc.Utf8);
 
     if (!decrypted) {
       console.error("Decryption failed: empty result");
@@ -89,7 +89,6 @@ export const getDecryptedUserInfo = getUserInfo;
 // Get token expiration from JWT
 export const getTokenExpiration = (token: string): number | null => {
   try {
-    // Simple JWT decode without library (works for our format)
     const base64Url = token.split(".")[1];
     const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
     const jsonPayload = decodeURIComponent(

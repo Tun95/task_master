@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { CreateCompanyDataDto } from './dto/company-data.dto';
 import { CloudinaryService } from '@/cloudinary/cloudinary.service';
+import { UserFilterDto } from './dto/user-filter.dto';
 
 @Injectable()
 export class UserService {
@@ -51,13 +52,188 @@ export class UserService {
     };
   }
 
+  async getAllUsers(filterDto: UserFilterDto) {
+    const {
+      search,
+      role,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+      page = 1,
+      limit = 10,
+    } = filterDto;
+    const skip = (page - 1) * limit;
+
+    // Build where clause
+    const where: any = {};
+
+    if (search) {
+      where.OR = [
+        { email: { contains: search, mode: 'insensitive' } },
+        { fullName: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    if (role) {
+      where.role = role;
+    }
+
+    // Get users and admins separately
+    const [users, admins, totalUsers, totalAdmins] = await Promise.all([
+      this.prisma.user.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { [sortBy]: sortOrder },
+        include: {
+          companyData: true,
+          receivedImages: {
+            take: 5,
+            orderBy: { createdAt: 'desc' },
+          },
+        },
+      }),
+      this.prisma.admin.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { [sortBy]: sortOrder },
+      }),
+      this.prisma.user.count({ where }),
+      this.prisma.admin.count({ where }),
+    ]);
+
+    // Combine and sort with type safety
+    const allUsers = [...users, ...admins].sort((a: any, b: any) => {
+      const aValue = a[sortBy as keyof typeof a];
+      const bValue = b[sortBy as keyof typeof b];
+
+      if (sortOrder === 'asc') {
+        return aValue > bValue ? 1 : -1;
+      }
+      return aValue < bValue ? 1 : -1;
+    });
+
+    return {
+      data: allUsers.slice(0, limit),
+      meta: {
+        page,
+        limit,
+        total: totalUsers + totalAdmins,
+        totalUsers,
+        totalAdmins,
+        pages: Math.ceil((totalUsers + totalAdmins) / limit),
+      },
+    };
+  }
+
+  async getUserById(id: string) {
+    // Try to find in User first, then Admin
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      include: {
+        companyData: true,
+        receivedImages: {
+          orderBy: { createdAt: 'desc' },
+        },
+      },
+    });
+
+    if (user) {
+      return user;
+    }
+
+    const admin = await this.prisma.admin.findUnique({
+      where: { id },
+    });
+
+    if (admin) {
+      return admin;
+    }
+
+    throw new NotFoundException('User not found');
+  }
+
+  async getUserStats() {
+    const [
+      totalUsers,
+      totalAdmins,
+      usersWithCompanyData,
+      recentUsers,
+      recentAdmins,
+    ] = await Promise.all([
+      this.prisma.user.count(),
+      this.prisma.admin.count(),
+      this.prisma.user.count({
+        where: { companyData: { isNot: null } },
+      }),
+      this.prisma.user.findMany({
+        take: 5,
+        orderBy: { createdAt: 'desc' },
+        select: { id: true, email: true, fullName: true, createdAt: true },
+      }),
+      this.prisma.admin.findMany({
+        take: 5,
+        orderBy: { createdAt: 'desc' },
+        select: { id: true, email: true, fullName: true, createdAt: true },
+      }),
+    ]);
+
+    return {
+      total: {
+        users: totalUsers,
+        admins: totalAdmins,
+        all: totalUsers + totalAdmins,
+      },
+      active: {
+        usersWithCompanyData,
+      },
+      recent: {
+        users: recentUsers,
+        admins: recentAdmins,
+      },
+    };
+  }
+
+  // ============ USER PROFILE METHODS ============
+
+  async getProfile(userId: string, userType: string) {
+    if (userType === 'user') {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        include: {
+          companyData: true,
+          receivedImages: {
+            take: 10,
+            orderBy: { createdAt: 'desc' },
+          },
+        },
+      });
+
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      return user;
+    } else {
+      const admin = await this.prisma.admin.findUnique({
+        where: { id: userId },
+      });
+
+      if (!admin) {
+        throw new NotFoundException('Admin not found');
+      }
+
+      return admin;
+    }
+  }
+
   // ============  (ADMIN): IMAGE UPLOAD METHODS ============
   async uploadImageToUser(
     adminId: string,
     userId: string,
     file: Express.Multer.File,
   ) {
-    // Check if target user exists (User A)
+    // Check if target user exists
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -120,7 +296,7 @@ export class UserService {
     };
   }
 
-  // ============  (ADMIN): VIEW USER A's DATA ============
+  // ============  (ADMIN): VIEW USER DATA ============
   async getUserDashboard(userId: string) {
     // Get the most recent company data submission
     const companyData = await this.prisma.companyData.findFirst({

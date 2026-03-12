@@ -35,3 +35,24 @@ export class UserFilterDto {
   @Min(1)
   limit?: number = 10;
 }
+
+export class UsersResponseDto {
+  data: Array<{
+    id: string;
+    email: string;
+    fullName: string;
+    role: 'USER' | 'ADMIN';
+    isEmailVerified: boolean;
+    createdAt: string;
+    hasCompanyData?: boolean;
+    imageCount?: number;
+  }>;
+  meta: {
+    page: number;
+    limit: number;
+    total: number;
+    totalUsers: number;
+    totalAdmins: number;
+    pages: number;
+  };
+}

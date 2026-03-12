@@ -46,7 +46,7 @@ export class ConfigService {
   }
 
   get port(): number {
-    return parseInt(process.env.PORT || '3001', 10);
+    return parseInt(process.env.PORT || '5000', 10);
   }
 
   get appName(): string {
@@ -58,7 +58,7 @@ export class ConfigService {
   }
 
   get adminFrontendUrl(): string {
-    return process.env.ADMIN_FRONTEND_URL || 'http://localhost:30001';
+    return process.env.ADMIN_FRONTEND_URL || 'http://localhost:3001';
   }
 
   get backendUrl(): string {
@@ -90,9 +90,7 @@ export class ConfigService {
   // JWT Config (for custom tokens)
   get jwt() {
     return {
-      secret:
-        process.env.JWT_SECRET ||
-        'taskmaster-jwt-secret-key-change-in-production',
+      secret: process.env.JWT_SECRET || 'taskmaster-super-secret-jwt-key',
       expiresIn: process.env.JWT_EXPIRES_IN || '7d',
       refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
     };
@@ -161,9 +159,7 @@ export class ConfigService {
 
   // Security
   get adminSecretKey(): string {
-    return (
-      process.env.ADMIN_SECRET_KEY || 'admin-secret-key-change-in-production'
-    );
+    return process.env.ADMIN_SECRET_KEY || 'taskmaster-secret-key';
   }
 
   // File Upload
