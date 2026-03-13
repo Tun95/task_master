@@ -9,6 +9,21 @@ import { CreateCompanyDataDto } from './dto/company-data.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { CloudinaryService } from '@/cloudinary/cloudinary.service';
 import { UserFilterDto } from './dto/user-filter.dto';
+import { User, Admin, CompanyData, Image } from '@prisma/client';
+
+// TYPES
+type UserWithRelations = User & {
+  companyData: CompanyData[];
+  receivedImages: (Image & {
+    uploadedBy: Pick<Admin, 'id' | 'fullName' | 'email'>;
+  })[];
+};
+
+type AdminWithRelations = Admin & {
+  uploadedImages: (Image & {
+    user: Pick<User, 'id' | 'fullName' | 'email'>;
+  })[];
+};
 
 @Injectable()
 export class UserService {
@@ -199,65 +214,89 @@ export class UserService {
 
   async getProfile(userId: string, userType: string) {
     if (userType === 'user') {
+      // First get the user without the complex include
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
-        include: {
-          companyData: {
-            orderBy: {
-              createdAt: 'desc',
-            },
-            take: 1,
-          } as any,
-          receivedImages: {
-            orderBy: {
-              createdAt: 'desc',
-            },
-            take: 10,
-            include: {
-              uploadedBy: {
-                select: {
-                  id: true,
-                  fullName: true,
-                  email: true,
-                },
-              },
-            },
-          },
-        },
       });
 
       if (!user) {
         throw new NotFoundException('User not found');
       }
 
-      return user;
-    } else {
-      const admin = await this.prisma.admin.findUnique({
-        where: { id: userId },
-        include: {
-          uploadedImages: {
-            orderBy: {
-              createdAt: 'desc',
-            },
-            take: 10,
-            include: {
-              user: {
-                select: {
-                  id: true,
-                  fullName: true,
-                  email: true,
-                },
+      // Then fetch the relations separately
+      const [companyData, receivedImages] = await Promise.all([
+        this.prisma.companyData.findMany({
+          where: { userId },
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+        }),
+        this.prisma.image.findMany({
+          where: { userId },
+          orderBy: { createdAt: 'desc' },
+          include: {
+            uploadedBy: {
+              select: {
+                id: true,
+                fullName: true,
+                email: true,
               },
             },
           },
-        },
+        }),
+      ]);
+
+      // Combine the data
+      const userWithRelations: UserWithRelations = {
+        ...user,
+        companyData,
+        receivedImages,
+      };
+
+      // Create response with image count
+      const response = {
+        ...userWithRelations,
+        imageCount: receivedImages.length,
+      };
+
+      return response;
+    } else {
+      // First get the admin without the complex include
+      const admin = await this.prisma.admin.findUnique({
+        where: { id: userId },
       });
 
       if (!admin) {
         throw new NotFoundException('Admin not found');
       }
 
-      return admin;
+      // Then fetch the relations separately
+      const uploadedImages = await this.prisma.image.findMany({
+        where: { uploadedById: userId },
+        orderBy: { createdAt: 'desc' },
+        include: {
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+            },
+          },
+        },
+      });
+
+      // Combine the data
+      const adminWithRelations: AdminWithRelations = {
+        ...admin,
+        uploadedImages,
+      };
+
+      // Create response with image count
+      const response = {
+        ...adminWithRelations,
+        imageCount: uploadedImages.length,
+      };
+
+      return response;
     }
   }
 
@@ -299,27 +338,48 @@ export class UserService {
       const updatedUser = await this.prisma.user.update({
         where: { id: userId },
         data: updateDto,
-        include: {
-          companyData: {
-            orderBy: {
-              createdAt: 'desc',
-            },
-            take: 1,
-          } as any,
-          receivedImages: {
-            orderBy: {
-              createdAt: 'desc',
-            },
-            take: 5,
-          },
-        },
       });
+
+      // Then fetch the relations separately
+      const [companyData, receivedImages] = await Promise.all([
+        this.prisma.companyData.findMany({
+          where: { userId },
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+        }),
+        this.prisma.image.findMany({
+          where: { userId },
+          orderBy: { createdAt: 'desc' },
+          include: {
+            uploadedBy: {
+              select: {
+                id: true,
+                fullName: true,
+                email: true,
+              },
+            },
+          },
+        }),
+      ]);
+
+      // Combine the data
+      const userWithRelations: UserWithRelations = {
+        ...updatedUser,
+        companyData,
+        receivedImages,
+      };
 
       this.logger.activity('PROFILE_UPDATED', userId, {
         updates: Object.keys(updateDto),
       });
 
-      return updatedUser;
+      // Add image count to the response
+      const response = {
+        ...userWithRelations,
+        imageCount: receivedImages.length,
+      };
+
+      return response;
     } else {
       const admin = await this.prisma.admin.findUnique({
         where: { id: userId },
@@ -352,21 +412,40 @@ export class UserService {
       const updatedAdmin = await this.prisma.admin.update({
         where: { id: userId },
         data: updateDto,
+      });
+
+      // Then fetch the relations separately
+      const uploadedImages = await this.prisma.image.findMany({
+        where: { uploadedById: userId },
+        orderBy: { createdAt: 'desc' },
         include: {
-          uploadedImages: {
-            orderBy: {
-              createdAt: 'desc',
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
             },
-            take: 5,
           },
         },
       });
+
+      // Combine the data
+      const adminWithRelations: AdminWithRelations = {
+        ...updatedAdmin,
+        uploadedImages,
+      };
 
       this.logger.activity('ADMIN_PROFILE_UPDATED', userId, {
         updates: Object.keys(updateDto),
       });
 
-      return updatedAdmin;
+      // Add image count to the response
+      const response = {
+        ...adminWithRelations,
+        imageCount: uploadedImages.length,
+      };
+
+      return response;
     }
   }
 

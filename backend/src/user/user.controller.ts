@@ -40,36 +40,21 @@ export class UserController {
     return this.userService.createCompanyData(user.id, createDto);
   }
 
-  @Get('profile/:userId')
-  async getProfile(@User() currentUser: any, @Param('userId') userId: string) {
-    // Ensure users can only access their own profile
-    if (currentUser.role !== 'ADMIN' && currentUser.id !== userId) {
-      throw new Error('Unauthorized access to profile');
-    }
-
-    this.logger.activity('GET_PROFILE', currentUser.id, {
-      targetUserId: userId,
-    });
-    return this.userService.getProfile(userId, currentUser.role.toLowerCase());
+  @Get('profile')
+  async getMyProfile(@User() user: any) {
+    this.logger.activity('GET_MY_PROFILE', user.id);
+    return this.userService.getProfile(user.id, user.role.toLowerCase());
   }
 
-  @Patch('profile/:userId')
-  async updateProfile(
-    @User() currentUser: any,
-    @Param('userId') userId: string,
+  @Patch('profile')
+  async updateMyProfile(
+    @User() user: any,
     @Body() updateDto: UpdateProfileDto,
   ) {
-    // Ensure users can only update their own profile
-    if (currentUser.role !== 'ADMIN' && currentUser.id !== userId) {
-      throw new Error('Unauthorized access to profile');
-    }
-
-    this.logger.activity('UPDATE_PROFILE', currentUser.id, {
-      targetUserId: userId,
-    });
+    this.logger.activity('UPDATE_MY_PROFILE', user.id);
     return this.userService.updateProfile(
-      userId,
-      currentUser.role.toLowerCase(),
+      user.id,
+      user.role.toLowerCase(),
       updateDto,
     );
   }
