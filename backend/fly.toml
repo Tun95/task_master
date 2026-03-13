@@ -1,8 +1,5 @@
 app = "task-master-jtoeja"
 
-[build]
-  builder = "heroku/buildpacks:20"
-
 [env]
   PORT = "3000"
 
