@@ -2,7 +2,6 @@
 
 import { Image } from "@/api/types/user.types";
 
-// Define a type that includes the optional path
 type ImageWithPossiblePath = Image & {
   path?: string;
 };
@@ -16,7 +15,6 @@ export const getImageUrl = (image: Image): string => {
     return img.url;
   }
 
-  // If path exists (from backend), use it
   if (img.path) {
     return img.path;
   }

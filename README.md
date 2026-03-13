@@ -285,8 +285,8 @@ POST /api/users/admin/upload-to-user/:userId
 
 `multipart/form-data`
 
-| Key | Type |
-|----|----|
+| Key   | Type |
+| ----- | ---- |
 | image | File |
 
 ### Response
@@ -337,14 +337,14 @@ GET /api/users/admin/users
 
 ### Query Parameters
 
-| Parameter | Description |
-|--------|-------------|
-| search | search by name or email |
-| role | USER or ADMIN |
-| sortBy | field to sort |
-| sortOrder | asc or desc |
-| page | page number |
-| limit | results per page |
+| Parameter | Description             |
+| --------- | ----------------------- |
+| search    | search by name or email |
+| role      | USER or ADMIN           |
+| sortBy    | field to sort           |
+| sortOrder | asc or desc             |
+| page      | page number             |
+| limit     | results per page        |
 
 Example:
 
@@ -440,6 +440,101 @@ The percentage is calculated automatically using:
 
 ---
 
+## User Profile
+
+Retrieve the **authenticated user's profile information**, including:
+
+- account details
+- submitted company data
+- images uploaded by admins
+- total image count
+
+> 🔒 **Authentication Required**
+
+**Endpoint**
+
+```
+GET /api/users/profile
+```
+
+### Success Response (200)
+
+```json
+{
+  "id": "cmmncaqi30001xj3w7i6kkwox",
+  "email": "akandetunji2@gmail.com",
+  "firebaseUid": "YO2TrOAIIuWwyvCmtYjSuwgQeUn1",
+  "fullName": "Tunji Akande",
+  "role": "USER",
+  "isEmailVerified": true,
+  "createdAt": "2026-03-12T10:43:19.851Z",
+  "updatedAt": "2026-03-12T10:43:55.290Z",
+  "companyData": [
+    {
+      "id": "cmmo527pa000ayl3wt793t9du",
+      "companyName": "Starlab",
+      "numberOfUsers": 23,
+      "numberOfProducts": 45,
+      "percentage": 195.65,
+      "userId": "cmmncaqi30001xj3w7i6kkwox",
+      "createdAt": "2026-03-13T00:08:31.102Z",
+      "updatedAt": "2026-03-13T00:08:31.102Z"
+    }
+  ],
+  "receivedImages": [
+    {
+      "id": "cmmo358iz0004yl3w3pfyne86",
+      "filename": "taskmaster/user-images/cmmncaqi30001xj3w7i6kkwox-1773357289581",
+      "originalName": "VPC-eu-north-1-03-06-2026_04_03_PM.png",
+      "path": "https://res.cloudinary.com/dstj5eqcd/image/upload/v1773357292/taskmaster/user-images/cmmncaqi30001xj3w7i6kkwox-1773357289581.png",
+      "mimetype": "image/png",
+      "size": 181982,
+      "uploadedById": "cmmn9jnm00005n23wdb8f4cbr",
+      "userId": "cmmncaqi30001xj3w7i6kkwox",
+      "createdAt": "2026-03-12T23:14:52.906Z",
+      "uploadedBy": {
+        "id": "cmmn9jnm00005n23wdb8f4cbr",
+        "fullName": "Admin",
+        "email": "shopmate400@gmail.com"
+      }
+    },
+    {
+      "id": "cmmo32cms0003yl3w0gm282g8",
+      "filename": "taskmaster/user-images/cmmncaqi30001xj3w7i6kkwox-1773357153064",
+      "originalName": "Route-53-dashboard-Route-53-Global-03-06-2026_04_00_PM.png",
+      "path": "https://res.cloudinary.com/dstj5eqcd/image/upload/v1773357157/taskmaster/user-images/cmmncaqi30001xj3w7i6kkwox-1773357153064.png",
+      "mimetype": "image/png",
+      "size": 263012,
+      "uploadedById": "cmmn9jnm00005n23wdb8f4cbr",
+      "userId": "cmmncaqi30001xj3w7i6kkwox",
+      "createdAt": "2026-03-12T23:12:38.260Z",
+      "uploadedBy": {
+        "id": "cmmn9jnm00005n23wdb8f4cbr",
+        "fullName": "Admin",
+        "email": "shopmate400@gmail.com"
+      }
+    }
+  ],
+  "imageCount": 4
+}
+```
+
+### Response Fields
+
+| Field          | Description                                 |
+| -------------- | ------------------------------------------- |
+| id             | Unique user identifier                      |
+| email          | User email address                          |
+| fullName       | User full name                              |
+| role           | Account role (`USER` or `ADMIN`)            |
+| companyData    | List of company submissions by the user     |
+| receivedImages | Images uploaded by admins for the user      |
+| imageCount     | Total number of images uploaded to the user |
+
+---
+
+---
+
 # Tech Stack
 
 Backend technologies used:
@@ -456,17 +551,95 @@ Backend technologies used:
 
 # Running the Project
 
-Install dependencies
+Follow the steps below to run the project locally.
 
+---
+
+## 1. Clone the Repository
+
+```bash
+git clone https://github.com/Tun95/task_master.git
 ```
+
+---
+
+## 2. Navigate into the Project
+
+```bash
+cd task_master
+```
+
+---
+
+## 3. Install Dependencies
+
+### Backend
+
+```bash
+cd backend
 npm install
 ```
 
-Run development server
+### Frontend
+
+Open a new terminal or go back to the root folder:
+
+```bash
+cd frontend
+npm install
+```
+
+---
+
+## 4. Start the Development Servers
+
+### Run Backend
+
+Inside the **backend** folder:
+
+```bash
+npm run dev:start
+```
+
+or
+
+```bash
+npm run dev
+```
+
+---
+
+### Run Frontend
+
+Inside the **frontend** folder:
+
+```bash
+npm run dev
+```
+
+---
+
+## Development URLs
+
+Backend API:
 
 ```
-npm run start:dev
+http://localhost:5000
 ```
+
+Frontend App:
+
+```
+http://localhost:3000
+```
+
+---
+
+## Notes
+
+- Ensure Node.js **v18+** is installed.
+- Environment variables must be configured before running the server.
+- The backend must be running before the frontend can communicate with the API.
 
 ---
 

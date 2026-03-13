@@ -10,13 +10,11 @@ import {
   ZoomIn,
   ZoomOut,
   Info,
-  Calendar,
   User,
   HardDrive,
   FileText,
 } from "lucide-react";
 import { Image as ImageType } from "@/api/types/user.types";
-import Image from "next/image";
 import { getImageUrl } from "@/utils/imageUtils";
 
 interface ImageGalleryProps {

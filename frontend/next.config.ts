@@ -16,7 +16,7 @@ const nextConfig = {
   },
 
   serverRuntimeConfig: {
-    fetchTimeout: 30000,
+    fetchTimeout: 50000,
   },
   publicRuntimeConfig: {
     apiUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000",
