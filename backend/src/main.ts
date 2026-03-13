@@ -6,102 +6,71 @@ import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 import { ConfigService } from '@config/config.service';
 import { initializeFirebase } from '@config/firebase.config';
-import * as express from 'express';
-
-// Add top-level error handlers
-process.on('uncaughtException', (error) => {
-  console.error('💥 UNCAUGHT EXCEPTION:', error);
-  console.error('Error stack:', error.stack);
-  process.exit(1);
-});
-
-process.on('unhandledRejection', (reason) => {
-  console.error('💥 UNHANDLED REJECTION:', reason);
-  process.exit(1);
-});
+import express from 'express';
+import dotenv from 'dotenv';
+dotenv.config();
 
 async function bootstrap() {
-  console.log('🚀 Starting bootstrap...');
-  console.log('1. Current directory:', process.cwd());
-  console.log('2. Node version:', process.version);
-
-  // Log environment variables (without sensitive data)
-  console.log('3. NODE_ENV:', process.env.NODE_ENV);
-  console.log('4. PORT from env:', process.env.PORT);
-
-  let configService;
-  try {
-    console.log('5. Creating ConfigService...');
-    configService = new ConfigService();
-    console.log('6. ConfigService created');
-    console.log('7. NodeEnv from config:', configService.nodeEnv);
-  } catch (error) {
-    console.error('❌ ConfigService failed:', error);
-    throw error;
-  }
+  const configService = new ConfigService();
 
   // Initialize Firebase first
   try {
-    console.log('8. Initializing Firebase...');
     initializeFirebase(configService);
-    console.log('9. ✅ Firebase initialized');
+    console.log('🔥 Firebase initialized successfully');
   } catch (error) {
-    console.error('❌ Firebase failed:', error);
-    throw error;
+    console.error('Failed to initialize Firebase:', error);
+    process.exit(1);
   }
 
-  try {
-    console.log('10. Creating Nest application...');
-    const app = await NestFactory.create(AppModule, {
-      logger: ['log', 'error', 'warn', 'debug', 'verbose'],
+  const app = await NestFactory.create(AppModule);
+
+  // Root status endpoint
+  const rootRouter = express.Router();
+  rootRouter.get('/', (req, res) => {
+    res.status(200).json({
+      status: 'UP',
+      timestamp: new Date().toISOString(),
+      service: 'TaskMaster API',
+      uptime: process.uptime(),
+      environment: configService.nodeEnv,
+      firebase: 'connected',
     });
-    console.log('11. ✅ Nest app created');
+  });
+  app.use(rootRouter);
 
-    // Root endpoint
-    console.log('12. Setting up routes...');
-    const rootRouter = express.Router();
-    rootRouter.get('/', (req, res) => {
-      res.json({ status: 'UP' });
-    });
-    app.use(rootRouter);
+  // Health check endpoint
+  const healthRouter = express.Router();
+  healthRouter.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok' });
+  });
+  app.use(healthRouter);
 
-    // Health check
-    const healthRouter = express.Router();
-    healthRouter.get('/health', (req, res) => {
-      res.json({ status: 'ok' });
-    });
-    app.use(healthRouter);
+  // Security
+  app.use(helmet());
 
-    console.log('13. Applying middleware...');
-    app.use(helmet());
+  // CORS
+  app.enableCors({
+    origin: configService.frontendUrl || 'http://localhost:3000',
+    credentials: true,
+  });
 
-    console.log('14. Configuring CORS...');
-    app.enableCors({
-      origin: configService.frontendUrl || 'http://localhost:3000',
-      credentials: true,
-    });
+  // Validation
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
 
-    app.useGlobalPipes(
-      new ValidationPipe({ whitelist: true, transform: true }),
-    );
-    app.setGlobalPrefix('api');
+  // Global prefix
+  app.setGlobalPrefix('api');
 
-    const port = process.env.PORT || configService.port || 5000;
-    console.log(`15. Attempting to listen on 0.0.0.0:${port}...`);
+  const port = process.env.PORT || configService.port || 5000;
+  await app.listen(port, '0.0.0.0');
 
-    await app.listen(port, '0.0.0.0');
-    console.log(`16. ✅ Server listening on port ${port}`);
-  } catch (error) {
-    console.error('❌ Fatal error in bootstrap:', error);
-    console.error('Error name:', error.name);
-    console.error('Error message:', error.message);
-    console.error('Error stack:', error.stack);
-    throw error;
-  }
+  console.log(`🚀 TaskMaster API running on: http://0.0.0.0:${port}/api`);
+  console.log(`📝 Environment: ${configService.nodeEnv}`);
+  console.log(`💓 Status check available at: http://0.0.0.0:${port}/health`);
 }
-
-console.log('⚡ Starting bootstrap function...');
-bootstrap().catch((error) => {
-  console.error('💥 Bootstrap promise rejected:', error);
-  process.exit(1);
-});
+bootstrap();
