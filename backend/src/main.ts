@@ -8,10 +8,9 @@ import { initializeFirebase } from '@config/firebase.config';
 import * as express from 'express';
 
 async function bootstrap() {
-  // For Creating temporary config service for Firebase initialization
   const configService = new ConfigService();
 
-  // To Initialize Firebase FIRST, before anything else
+  // Initialize Firebase first
   try {
     initializeFirebase(configService);
     console.log('🔥 Firebase initialized successfully');
@@ -35,6 +34,13 @@ async function bootstrap() {
     });
   });
   app.use(rootRouter);
+
+  // Health check endpoint
+  const healthRouter = express.Router();
+  healthRouter.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok' });
+  });
+  app.use(healthRouter);
 
   // Security
   app.use(helmet());
@@ -62,6 +68,6 @@ async function bootstrap() {
 
   console.log(`🚀 TaskMaster API running on: http://0.0.0.0:${port}/api`);
   console.log(`📝 Environment: ${configService.nodeEnv}`);
-  console.log(`💓 Status check available at: http://0.0.0.0:${port}/`);
+  console.log(`💓 Status check available at: http://0.0.0.0:${port}/health`);
 }
 bootstrap();
