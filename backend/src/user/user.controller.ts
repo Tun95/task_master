@@ -1,4 +1,3 @@
-import { Multer } from 'multer';
 import { Express } from 'express';
 import {
   Controller,
