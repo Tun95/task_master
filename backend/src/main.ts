@@ -3,18 +3,15 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
-import { ConfigService } from 'config/config.service';
-import { initializeFirebase } from 'config/firebase.config';
-import { ExpressAdapter } from '@nestjs/platform-express';
+import { ConfigService } from '@config/config.service';
+import { initializeFirebase } from '@config/firebase.config';
 import * as express from 'express';
 
-const server = express();
-
 async function bootstrap() {
-  // Temporary config service for Firebase initialization
+  // For Creating temporary config service for Firebase initialization
   const configService = new ConfigService();
 
-  // Initialize Firebase FIRST
+  // To Initialize Firebase FIRST, before anything else
   try {
     initializeFirebase(configService);
     console.log('🔥 Firebase initialized successfully');
@@ -23,8 +20,7 @@ async function bootstrap() {
     process.exit(1);
   }
 
-  // Create Nest app with Express adapter
-  const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
+  const app = await NestFactory.create(AppModule);
 
   // Root status endpoint
   const rootRouter = express.Router();
@@ -38,10 +34,10 @@ async function bootstrap() {
       firebase: 'connected',
     });
   });
-  server.use(rootRouter);
+  app.use(rootRouter);
 
   // Security
-  server.use(helmet());
+  app.use(helmet());
 
   // CORS
   app.enableCors({
@@ -61,16 +57,11 @@ async function bootstrap() {
   // Global prefix
   app.setGlobalPrefix('api');
 
-  // Initialize app (no app.listen here!)
-  await app.init();
+  const port = process.env.PORT || configService.port || 5000;
+  await app.listen(port, '0.0.0.0');
 
-  console.log(`🚀 TaskMaster API initialized`);
+  console.log(`🚀 TaskMaster API running on: http://0.0.0.0:${port}/api`);
   console.log(`📝 Environment: ${configService.nodeEnv}`);
-  console.log(`💓 Status check available at: /`);
+  console.log(`💓 Status check available at: http://0.0.0.0:${port}/`);
 }
-
-// Run bootstrap once
 bootstrap();
-
-// Export Express server for Vercel
-export default server;
