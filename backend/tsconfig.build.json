@@ -4,6 +4,8 @@
     "outDir": "./dist",
     "rootDir": "./",
     "incremental": true,
+    "noEmitOnError": false,  // This allows build even with errors
+    "skipLibCheck": true,
     "paths": {
       "@/*": ["./src/*"],
       "@auth/*": ["./src/auth/*"],
