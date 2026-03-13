@@ -1,4 +1,4 @@
-app = "task-master-jtoeja"
+app = "task-master-api"
 
 [env]
   PORT = "3000"
