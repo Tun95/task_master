@@ -2,7 +2,7 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./src", // 👈 change this
+    "rootDir": "./",   // 👈 allow both src and config
     "incremental": true,
     "noEmitOnError": false,
     "skipLibCheck": true,
