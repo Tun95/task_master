@@ -47,7 +47,7 @@ export class ConfigService {
   }
 
   get port(): number {
-    return parseInt(process.env.PORT || '5000', 10);
+    return parseInt(process.env.PORT || '3000', 10);
   }
 
   get appName(): string {
@@ -74,7 +74,7 @@ export class ConfigService {
   get databaseUrl(): string {
     return (
       process.env.DATABASE_URL ||
-      'postgresql://task_master_user_db:5OOC8EqvLy0PVWgwnHwUcaSObStTvD6g@dpg-d6pna494tr6s7397tkng-a.oregon-postgres.render.com/task_master_db_txp4?sslmode=require'
+      'postgresql://postgres:password@localhost:5432/taskmaster'
     );
   }
 
