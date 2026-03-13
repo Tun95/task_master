@@ -9,7 +9,7 @@
       "@auth/*": ["./src/auth/*"],
       "@common/*": ["./src/utils/common/*"],
       "@config/*": ["./config/*"],
-      "@prisma/*": ["./src/utils/prisma/*"],
+      "@prisma-local/*": ["./src/utils/prisma/*"], // Changed
       "@email/*": ["./src/utils/email/*"]
     }
   },

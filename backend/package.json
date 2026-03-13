@@ -26,6 +26,14 @@
     "db:setup": "npm run prisma:generate && npm run prisma:migrate",
     "db:reset": "prisma migrate reset --force"
   },
+  "_moduleAliases": {
+    "@": "dist/src",
+    "@auth": "dist/src/auth",
+    "@common": "dist/src/utils/common",
+    "@config": "dist/config",
+    "@prisma-local/*": "dist/src/utils/prisma/*",
+    "@email": "dist/src/utils/email"
+  },
   "dependencies": {
     "@logtail/node": "^0.5.8",
     "@nestjs/common": "^10.0.0",
@@ -47,6 +55,7 @@
     "dotenv": "^17.3.1",
     "firebase-admin": "^13.7.0",
     "helmet": "^8.1.0",
+    "module-alias": "^2.3.4",
     "multer": "^2.1.1",
     "nodemailer": "^8.0.2",
     "nodemon": "^3.1.14",
