@@ -4,6 +4,7 @@ import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 import { ConfigService } from 'config/config.service';
 import { initializeFirebase } from 'config/firebase.config';
+import * as express from 'express';
 
 async function bootstrap() {
   // For Creating temporary config service for Firebase initialization
@@ -19,6 +20,20 @@ async function bootstrap() {
   }
 
   const app = await NestFactory.create(AppModule);
+
+  // Root status endpoint
+  const rootRouter = express.Router();
+  rootRouter.get('/', (req, res) => {
+    res.status(200).json({
+      status: 'UP',
+      timestamp: new Date().toISOString(),
+      service: 'TaskMaster API',
+      uptime: process.uptime(),
+      environment: configService.nodeEnv,
+      firebase: 'connected',
+    });
+  });
+  app.use(rootRouter);
 
   // Security
   app.use(helmet());
@@ -46,5 +61,6 @@ async function bootstrap() {
 
   console.log(`🚀 TaskMaster API running on: http://localhost:${port}/api`);
   console.log(`📝 Environment: ${configService.nodeEnv}`);
+  console.log(`💓 Status check available at: http://localhost:${port}/`);
 }
 bootstrap();

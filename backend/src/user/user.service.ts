@@ -180,7 +180,11 @@ export class UserService {
       this.prisma.user.count(),
       this.prisma.admin.count(),
       this.prisma.user.count({
-        where: { companyData: { isNot: null } },
+        where: {
+          companyData: {
+            some: {},
+          },
+        },
       }),
       this.prisma.user.findMany({
         take: 5,
