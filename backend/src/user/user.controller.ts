@@ -1,4 +1,5 @@
-import { Request, Response } from 'express';
+import { Multer } from 'multer';
+import { Express } from 'express';
 import {
   Controller,
   Get,
