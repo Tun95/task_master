@@ -6,25 +6,10 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "npx prisma generate && npx prisma db push && tsc -p tsconfig.build.json",
-    "start": "ts-node -r tsconfig-paths/register src/main.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/src/main.js",
     "start:dev": "nest start --watch",
-    "start:debug": "nest start --debug --watch",
-    "start:prod": "npm run build && node dist/src/main.js",
-    "dev": "nest start --watch",
-    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:cov": "jest --coverage",
-    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
-    "prisma:studio": "prisma studio",
-    "prisma:push": "prisma db push",
-    "prisma:seed": "ts-node prisma/seed.ts",
-    "db:setup": "npm run prisma:generate && npm run prisma:migrate",
-    "db:reset": "prisma migrate reset --force"
+    "start:prod": "npm run build && node dist/src/main.js"
   },
   "_moduleAliases": {
     "@": "dist/src",
