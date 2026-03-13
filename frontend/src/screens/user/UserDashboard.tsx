@@ -3,7 +3,11 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { userService } from "@/api/services/userService";
-import { CompanyData, ProfileResponse } from "@/api/types/user.types";
+import {
+  CompanyData,
+  ProfileResponse,
+  Image as ImageType,
+} from "@/api/types/user.types";
 import {
   Building2,
   Users,
@@ -17,23 +21,28 @@ import {
   Briefcase,
   Clock,
   TrendingUp,
+  Image as ImageIcon,
 } from "lucide-react";
 import { StatsCard } from "@/components/ui/StatsCard";
 import { CompanyDataModal } from "@/components/forms/CompanyDataForm";
+import { ImageGallery } from "@/components/ui/ImageGallery";
+import Image from "next/image";
 
 export const UserDashboard = () => {
   const { user } = useAuth();
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [companyData, setCompanyData] = useState<CompanyData | null>(null);
+  const [images, setImages] = useState<ImageType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showImageGallery, setShowImageGallery] = useState(false);
 
   const fetchUserData = async () => {
     if (!user?.id) return;
 
     try {
-      // Fetch profile with company data using the service
+      // Fetch profile with company data and ALL images using the service
       const profileData = (await userService.getProfile()) as ProfileResponse;
       setProfile(profileData);
 
@@ -46,6 +55,13 @@ export const UserDashboard = () => {
         setCompanyData(sortedData[0]);
       } else {
         setCompanyData(null);
+      }
+
+      // Set all images from profile
+      if (profileData.receivedImages) {
+        setImages(profileData.receivedImages);
+      } else {
+        setImages([]);
       }
     } catch (error) {
       console.error("Failed to fetch user data:", error);
@@ -83,7 +99,7 @@ export const UserDashboard = () => {
     : "0.00";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen pb-10 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       {/* Header with Gradient */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-800 dark:to-purple-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -206,7 +222,7 @@ export const UserDashboard = () => {
               />
             </div>
 
-            {/* Detailed Metrics */}
+            {/* Detailed Metrics and Images Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
               {/* Percentage Card */}
               <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6">
@@ -243,32 +259,99 @@ export const UserDashboard = () => {
                 </div>
               </div>
 
-              {/* Activity Timeline */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6">
+              {/* Images Summary Card */}
+              <div
+                className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 cursor-pointer hover:shadow-2xl transition-all duration-200"
+                onClick={() => setShowImageGallery(true)}
+              >
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-                  <div className="p-2 bg-blue-100 rounded-lg mr-3">
-                    <Clock className="h-5 w-5 text-blue-600" />
+                  <div className="p-2 bg-green-100 rounded-lg mr-3">
+                    <ImageIcon className="h-5 w-5 text-green-600" />
                   </div>
-                  Recent Activity
+                  Your Images
                 </h3>
-                <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-4xl font-bold text-green-600 dark:text-green-400">
+                      {images.length}
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      total images
+                    </p>
+                  </div>
+                  {images.length > 0 && (
+                    <div className="flex -space-x-2">
+                      {images.slice(0, 3).map((image, index) => (
+                        <div
+                          key={image.id}
+                          className="w-10 h-10 rounded-full border-2 border-white dark:border-gray-800 overflow-hidden bg-gray-200"
+                        >
+                          <Image
+                            src={image.url}
+                            alt={`Image ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ))}
+                      {images.length > 3 && (
+                        <div className="w-10 h-10 rounded-full border-2 border-white dark:border-gray-800 bg-gray-200 flex items-center justify-center text-xs font-medium text-gray-600">
+                          +{images.length - 3}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                {images.length > 0 && (
+                  <p className="mt-4 text-sm text-blue-600 dark:text-blue-400">
+                    Click to view all images →
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Activity Timeline */}
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 mb-8">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                <div className="p-2 bg-blue-100 rounded-lg mr-3">
+                  <Clock className="h-5 w-5 text-blue-600" />
+                </div>
+                Recent Activity
+              </h3>
+              <div className="space-y-4">
+                <div className="flex items-start space-x-3">
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <Building2 className="h-4 w-4 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-gray-900 dark:text-white font-medium">
+                      Company data{" "}
+                      {companyData.createdAt === companyData.updatedAt
+                        ? "submitted"
+                        : "updated"}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {new Date(companyData.updatedAt).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Latest image upload */}
+                {images.length > 0 && (
                   <div className="flex items-start space-x-3">
-                    <div className="p-2 bg-green-100 rounded-lg">
-                      <Building2 className="h-4 w-4 text-green-600" />
+                    <div className="p-2 bg-purple-100 rounded-lg">
+                      <ImageIcon className="h-4 w-4 text-purple-600" />
                     </div>
                     <div>
                       <p className="text-gray-900 dark:text-white font-medium">
-                        Company data{" "}
-                        {companyData.createdAt === companyData.updatedAt
-                          ? "submitted"
-                          : "updated"}
+                        Latest image uploaded
                       </p>
                       <p className="text-sm text-gray-500">
-                        {new Date(companyData.updatedAt).toLocaleString()}
+                        {new Date(images[0].uploadedAt).toLocaleString()} by{" "}
+                        {images[0].uploadedBy.fullName}
                       </p>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
 
@@ -308,6 +391,14 @@ export const UserDashboard = () => {
           </div>
         )}
       </div>
+
+      {/* Image Gallery Modal */}
+      {showImageGallery && (
+        <ImageGallery
+          images={images}
+          onClose={() => setShowImageGallery(false)}
+        />
+      )}
 
       {/* Company Data Modal */}
       <CompanyDataModal

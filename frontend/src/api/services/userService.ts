@@ -102,13 +102,10 @@ class UserService {
         throw new Error("No user logged in");
       }
 
-      // Determine endpoint based on user role
-      const endpoint =
-        userInfo.role === "ADMIN"
-          ? `/api/users/admin/profile/${userInfo.id}`
-          : `/api/users/profile/${userInfo.id}`;
+      const endpoint = `/api/users/profile`;
 
       const response = await this.api.get(endpoint);
+
       return response.data;
     } catch (error) {
       throw this.handleError(error as AxiosError<ErrorResponse>);
@@ -125,10 +122,7 @@ class UserService {
         throw new Error("No user logged in");
       }
 
-      const endpoint =
-        userInfo.role === "ADMIN"
-          ? `/api/users/admin/profile/${userInfo.id}`
-          : `/api/users/profile/${userInfo.id}`;
+      const endpoint = `/api/users/profile`;
 
       const response = await this.api.patch(endpoint, data);
       return response.data;
@@ -174,6 +168,32 @@ class UserService {
   ): Promise<UserWithDetails | AdminWithDetails> {
     try {
       const response = await this.api.get(`/api/users/admin/users/${userId}`);
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error as AxiosError<ErrorResponse>);
+    }
+  }
+
+  // Admin: Get any user's profile by ID
+  async getAdminUserProfile(userId: string): Promise<ProfileResponse> {
+    try {
+      const response = await this.api.get(`/api/users/admin/profile/${userId}`);
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error as AxiosError<ErrorResponse>);
+    }
+  }
+
+  // Admin: Update any user's profile by ID
+  async updateAdminUserProfile(
+    userId: string,
+    data: UpdateProfileDto,
+  ): Promise<ProfileResponse> {
+    try {
+      const response = await this.api.patch(
+        `/api/users/admin/profile/${userId}`,
+        data,
+      );
       return response.data;
     } catch (error) {
       throw this.handleError(error as AxiosError<ErrorResponse>);
