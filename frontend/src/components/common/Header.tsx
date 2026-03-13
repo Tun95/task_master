@@ -48,8 +48,16 @@ export const Header = () => {
     router.push("/login");
   };
 
-  // Don't show header on login page
-  if (pathname === "/login") {
+  // Public routes where header should NOT show
+  const publicRoutes = [
+    "/login",
+    "/register",
+    "/forgot-password",
+    "/reset-password",
+  ];
+
+  // Don't show header on:
+  if (publicRoutes.includes(pathname) || !isAuthenticated) {
     return null;
   }
 
@@ -66,7 +74,6 @@ export const Header = () => {
               TaskMaster
             </Link>
           </div>
-
 
           {/* Right side - Theme toggle & User menu */}
           <div className="flex items-center space-x-2 sm:space-x-4">
