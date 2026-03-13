@@ -21,7 +21,6 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 const handleUnauthorized = () => {
   if (typeof window !== "undefined") {
     clearUserInfo();
-    // Use window.location for a hard redirect to clear all state
     window.location.href = "/login";
   }
 };

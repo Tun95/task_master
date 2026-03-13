@@ -20,6 +20,7 @@ export interface Image {
   filename: string;
   originalName: string;
   url: string;
+  path?: string;
   mimetype: string;
   size: number;
   uploadedBy: {

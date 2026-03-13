@@ -82,7 +82,7 @@ class UserService {
 
   // ============ USER ENDPOINTS ============
 
-  // User A: Submit company data
+  // User: Submit company data
   async createCompanyData(
     data: CreateCompanyDataDto,
   ): Promise<{ message: string; data: CompanyData }> {

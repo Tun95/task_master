@@ -1,3 +1,4 @@
+// components/UserDashboard.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -15,7 +16,6 @@ import {
   User as UserIcon,
   Mail,
   Calendar,
-  Edit,
   Plus,
   RefreshCw,
   Briefcase,
@@ -26,7 +26,7 @@ import {
 import { StatsCard } from "@/components/ui/StatsCard";
 import { CompanyDataModal } from "@/components/forms/CompanyDataForm";
 import { ImageGallery } from "@/components/ui/ImageGallery";
-import Image from "next/image";
+import { getImageUrl } from "@/utils/imageUtils";
 
 export const UserDashboard = () => {
   const { user } = useAuth();
@@ -42,11 +42,9 @@ export const UserDashboard = () => {
     if (!user?.id) return;
 
     try {
-      // Fetch profile with company data and ALL images using the service
       const profileData = (await userService.getProfile()) as ProfileResponse;
       setProfile(profileData);
 
-      // Get the most recent company data from profile
       if (profileData.companyData && profileData.companyData.length > 0) {
         const sortedData = [...profileData.companyData].sort(
           (a, b) =>
@@ -57,7 +55,6 @@ export const UserDashboard = () => {
         setCompanyData(null);
       }
 
-      // Set all images from profile
       if (profileData.receivedImages) {
         setImages(profileData.receivedImages);
       } else {
@@ -85,7 +82,6 @@ export const UserDashboard = () => {
     setIsModalOpen(false);
   };
 
-  // Calculate days since joined
   const daysSinceJoined = profile?.createdAt
     ? Math.floor(
         (new Date().getTime() - new Date(profile.createdAt).getTime()) /
@@ -93,10 +89,11 @@ export const UserDashboard = () => {
       )
     : 0;
 
-  // Calculate products per user ratio
   const productsPerUser = companyData
     ? (companyData.numberOfProducts / companyData.numberOfUsers).toFixed(2)
     : "0.00";
+
+  console.log("IMAGES", images);
 
   return (
     <div className="min-h-screen pb-10 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
@@ -120,7 +117,7 @@ export const UserDashboard = () => {
             <button
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm rounded-xl text-white hover:bg-white/30 transition-all duration-200 disabled:opacity-50"
+              className="flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm rounded-xl text-white hover:bg-white/30 transition-all duration-200 disabled:opacity-50 cursor-pointer"
             >
               <RefreshCw
                 className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`}
@@ -161,19 +158,10 @@ export const UserDashboard = () => {
             </div>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors duration-200"
+              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors duration-200 cursor-pointer"
             >
-              {companyData ? (
-                <>
-                  <Edit className="h-4 w-4 mr-2" />
-                  Update Data
-                </>
-              ) : (
-                <>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Data
-                </>
-              )}
+              <Plus className="h-4 w-4 mr-2" />
+              Submit Data
             </button>
           </div>
         </div>
@@ -281,18 +269,31 @@ export const UserDashboard = () => {
                   </div>
                   {images.length > 0 && (
                     <div className="flex -space-x-2">
-                      {images.slice(0, 3).map((image, index) => (
-                        <div
-                          key={image.id}
-                          className="w-10 h-10 rounded-full border-2 border-white dark:border-gray-800 overflow-hidden bg-gray-200"
-                        >
-                          <Image
-                            src={image.url}
-                            alt={`Image ${index + 1}`}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      ))}
+                      {images.slice(0, 3).map((image, index) => {
+                        // Use the utility function instead of 'as any'
+                        const imageUrl = getImageUrl(image);
+                        return (
+                          <div
+                            key={image.id}
+                            className="w-10 h-10 rounded-full border-2 border-white dark:border-gray-800 overflow-hidden bg-gray-200"
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={imageUrl}
+                              alt={`Image ${index + 1}`}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                console.error(
+                                  "Failed to load thumbnail:",
+                                  imageUrl,
+                                );
+                                (e.target as HTMLImageElement).style.display =
+                                  "none";
+                              }}
+                            />
+                          </div>
+                        );
+                      })}
                       {images.length > 3 && (
                         <div className="w-10 h-10 rounded-full border-2 border-white dark:border-gray-800 bg-gray-200 flex items-center justify-center text-xs font-medium text-gray-600">
                           +{images.length - 3}
@@ -324,13 +325,10 @@ export const UserDashboard = () => {
                   </div>
                   <div>
                     <p className="text-gray-900 dark:text-white font-medium">
-                      Company data{" "}
-                      {companyData.createdAt === companyData.updatedAt
-                        ? "submitted"
-                        : "updated"}
+                      Company data submitted
                     </p>
                     <p className="text-sm text-gray-500">
-                      {new Date(companyData.updatedAt).toLocaleString()}
+                      {new Date(companyData.createdAt).toLocaleString()}
                     </p>
                   </div>
                 </div>
@@ -358,13 +356,14 @@ export const UserDashboard = () => {
             {/* Last Updated Info */}
             <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 text-sm text-blue-700 dark:text-blue-300 flex items-center justify-between">
               <span>
-                Last updated: {new Date(companyData.updatedAt).toLocaleString()}
+                Last submitted:{" "}
+                {new Date(companyData.createdAt).toLocaleString()}
               </span>
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                className="text-blue-600 dark:text-blue-400 hover:underline font-medium cursor-pointer"
               >
-                Update now →
+                Submit new data →
               </button>
             </div>
           </>
@@ -383,7 +382,7 @@ export const UserDashboard = () => {
             </p>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200"
+              className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 cursor-pointer"
             >
               <Plus className="h-5 w-5 mr-2" />
               Submit Your First Data
