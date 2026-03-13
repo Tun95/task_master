@@ -14,8 +14,8 @@ import { RegisterUserDto } from './dto/register-user.dto';
 import { RegisterAdminDto } from './dto/register-admin.dto';
 import { LoginDto } from './dto/login.dto';
 import * as crypto from 'crypto';
-import { ConfigService } from 'config/config.service';
-import { getFirebaseAuth } from 'config/firebase.config';
+import { ConfigService } from '@/config/config.service';
+import { getFirebaseAuth } from '@/config/firebase.config';
 import axios from 'axios';
 
 @Injectable()

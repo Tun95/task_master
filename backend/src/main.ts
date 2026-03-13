@@ -3,8 +3,8 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
-import { ConfigService } from 'config/config.service';
-import { initializeFirebase } from 'config/firebase.config';
+import { ConfigService } from '@/config/config.service';
+import { initializeFirebase } from '@/config/firebase.config';
 import * as express from 'express';
 
 async function bootstrap() {

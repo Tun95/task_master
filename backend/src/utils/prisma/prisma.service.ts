@@ -7,7 +7,7 @@ import {
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
-import { ConfigService } from 'config/config.service';
+import { ConfigService } from '@/config/config.service';
 
 @Injectable()
 export class PrismaService
