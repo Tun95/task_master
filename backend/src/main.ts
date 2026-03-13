@@ -1,16 +1,20 @@
+// backend/src/main.ts
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 import { ConfigService } from 'config/config.service';
 import { initializeFirebase } from 'config/firebase.config';
+import { ExpressAdapter } from '@nestjs/platform-express';
 import * as express from 'express';
 
+const server = express();
+
 async function bootstrap() {
-  // For Creating temporary config service for Firebase initialization
+  // Temporary config service for Firebase initialization
   const configService = new ConfigService();
 
-  // To Initialize Firebase FIRST, before anything else
+  // Initialize Firebase FIRST
   try {
     initializeFirebase(configService);
     console.log('🔥 Firebase initialized successfully');
@@ -19,7 +23,8 @@ async function bootstrap() {
     process.exit(1);
   }
 
-  const app = await NestFactory.create(AppModule);
+  // Create Nest app with Express adapter
+  const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
 
   // Root status endpoint
   const rootRouter = express.Router();
@@ -33,10 +38,10 @@ async function bootstrap() {
       firebase: 'connected',
     });
   });
-  app.use(rootRouter);
+  server.use(rootRouter);
 
   // Security
-  app.use(helmet());
+  server.use(helmet());
 
   // CORS
   app.enableCors({
@@ -56,11 +61,16 @@ async function bootstrap() {
   // Global prefix
   app.setGlobalPrefix('api');
 
-  const port = configService.port || 5000;
-  await app.listen(port);
+  // Initialize app (no app.listen here!)
+  await app.init();
 
-  console.log(`🚀 TaskMaster API running on: http://localhost:${port}/api`);
+  console.log(`🚀 TaskMaster API initialized`);
   console.log(`📝 Environment: ${configService.nodeEnv}`);
-  console.log(`💓 Status check available at: http://localhost:${port}/`);
+  console.log(`💓 Status check available at: /`);
 }
+
+// Run bootstrap once
 bootstrap();
+
+// Export Express server for Vercel
+export default server;
