@@ -6,6 +6,7 @@ build
 # files
 starlab-1e23a.json
 /config/firebase-service-account.json
+starlab-1e23a-firebase-adminsdk-fbsvc-c23b51f399.json
 
 # Logs
 logs
