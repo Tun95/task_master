@@ -102,3 +102,5 @@ export const companyDataSchema = yup.object({
     .min(1, "Number of products must be at least 1")
     .required("Number of products is required"),
 });
+
+

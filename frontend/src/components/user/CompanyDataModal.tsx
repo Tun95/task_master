@@ -15,7 +15,7 @@ import {
   AlertCircle,
   CheckCircle,
 } from "lucide-react";
-import companyDataSchema from "@/schemas/index";
+import { companyDataSchema } from "@/schemas";
 
 interface CompanyDataModalProps {
   isOpen: boolean;
@@ -41,7 +41,7 @@ export const CompanyDataModal = ({
       numberOfUsers: existingData?.numberOfUsers || 0,
       numberOfProducts: existingData?.numberOfProducts || 0,
     },
-    companyDataSchema,
+    validationSchema:companyDataSchema,
     onSubmit: async (values) => {
       setIsSubmitting(true);
       try {
