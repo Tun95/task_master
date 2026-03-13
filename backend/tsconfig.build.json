@@ -4,14 +4,14 @@
     "outDir": "./dist",
     "rootDir": "./",
     "incremental": true,
-    "noEmitOnError": false,  // This allows build even with errors
+    "noEmitOnError": false,
     "skipLibCheck": true,
     "paths": {
       "@/*": ["./src/*"],
       "@auth/*": ["./src/auth/*"],
       "@common/*": ["./src/utils/common/*"],
       "@config/*": ["./config/*"],
-      "@prisma-local/*": ["./src/utils/prisma/*"], // Changed
+      "@prisma-local/*": ["./src/utils/prisma/*"],
       "@email/*": ["./src/utils/email/*"]
     }
   },
