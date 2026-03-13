@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useFormik } from "formik";
 import { userService } from "@/api/services/userService";
 import { CompanyData, CreateCompanyDataDto } from "@/api/types/user.types";
@@ -35,6 +35,8 @@ export const CompanyDataModal = ({
     number | null
   >(existingData?.percentage || null);
 
+  const modalRef = useRef<HTMLDivElement>(null);
+
   const formik = useFormik<CreateCompanyDataDto>({
     initialValues: {
       companyName: existingData?.companyName || "",
@@ -63,6 +65,26 @@ export const CompanyDataModal = ({
     enableReinitialize: true,
   });
 
+  // Handle click outside to close modal
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        modalRef.current &&
+        !modalRef.current.contains(event.target as Node)
+      ) {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen, onClose]);
+
   // Calculate percentage in real-time
   useEffect(() => {
     const { numberOfUsers, numberOfProducts } = formik.values;
@@ -79,14 +101,14 @@ export const CompanyDataModal = ({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity" />
 
       {/* Modal */}
       <div className="relative min-h-screen flex items-center justify-center p-4">
-        <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-hidden">
+        <div
+          ref={modalRef}
+          className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-hidden"
+        >
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center space-x-3">
@@ -104,7 +126,7 @@ export const CompanyDataModal = ({
             </div>
             <button
               onClick={onClose}
-              className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
             >
               <X className="h-5 w-5" />
             </button>
@@ -220,14 +242,14 @@ export const CompanyDataModal = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting || !formik.isValid || !formik.dirty}
-                className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center"
+                className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center cursor-pointer"
               >
                 {isSubmitting ? (
                   <>

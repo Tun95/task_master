@@ -1,3 +1,4 @@
+// context/AuthContext.tsx
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
@@ -12,6 +13,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  isUser: boolean; // Add this
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -20,11 +22,10 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<UserInfo | null>(null);
-  const [isLoading, setIsLoading] = useState(true); // Start with true
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    // Check for existing session
     const loadUser = () => {
       try {
         const userInfo = authService.getUserInfo();
@@ -44,13 +45,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setIsLoading(true);
       const response = await authService.login({ email, password });
 
-      // Get the updated user info
       const userInfo = authService.getUserInfo();
       setUser(userInfo);
 
       toast.success(response.message || "Login successful!");
 
-      // Redirect based on role
       if (userInfo?.role === "ADMIN") {
         router.push("/admin/dashboard");
       } else {
@@ -84,6 +83,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     isLoading,
     isAuthenticated: !!user,
     isAdmin: user?.role === "ADMIN",
+    isUser: user?.role === "USER",
     login,
     logout,
   };

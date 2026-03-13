@@ -334,23 +334,6 @@ export const UserDashboard = () => {
                     </p>
                   </div>
                 </div>
-
-                {/* Latest image upload */}
-                {images.length > 0 && (
-                  <div className="flex items-start space-x-2 md:space-x-3">
-                    <div className="p-1.5 md:p-2 bg-purple-100 rounded-lg flex-shrink-0">
-                      <ImageIcon className="h-3 w-3 md:h-4 md:w-4 text-purple-600" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm md:text-base text-gray-900 dark:text-white font-medium truncate">
-                        Latest image uploaded by {images[0].uploadedBy.fullName}
-                      </p>
-                      <p className="text-xs md:text-sm text-gray-500">
-                        {new Date(images[0].uploadedAt).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
 

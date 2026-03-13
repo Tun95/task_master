@@ -1,10 +1,11 @@
+// components/common/Header.tsx
 "use client";
 
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export const Header = () => {
   const { user, logout, isAuthenticated, isAdmin, isUser } = useAuth();
@@ -12,6 +13,35 @@ export const Header = () => {
   const pathname = usePathname();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Handle click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Close menu on escape key
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, []);
 
   const handleLogout = async () => {
     await logout();
@@ -24,74 +54,30 @@ export const Header = () => {
   }
 
   return (
-    <header className="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-50">
+    <header className="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-50 transition-colors duration-300">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center">
             <Link
               href="/"
-              className="text-xl font-bold text-gray-900 dark:text-white"
+              className="text-xl font-bold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer"
             >
               TaskMaster
             </Link>
           </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            {isAuthenticated && (
-              <>
-                {isUser && (
-                  <>
-                    <Link
-                      href="/dashboard"
-                      className={`text-sm font-medium transition-colors ${
-                        pathname === "/dashboard"
-                          ? "text-blue-600 dark:text-blue-400"
-                          : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
-                      }`}
-                    >
-                      Dashboard
-                    </Link>
-                    <Link
-                      href="/company-data"
-                      className={`text-sm font-medium transition-colors ${
-                        pathname === "/company-data"
-                          ? "text-blue-600 dark:text-blue-400"
-                          : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
-                      }`}
-                    >
-                      Submit Data
-                    </Link>
-                  </>
-                )}
-
-                {isAdmin && (
-                  <Link
-                    href="/admin/dashboard"
-                    className={`text-sm font-medium transition-colors ${
-                      pathname === "/admin/dashboard"
-                        ? "text-purple-600 dark:text-purple-400"
-                        : "text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400"
-                    }`}
-                  >
-                    Admin Dashboard
-                  </Link>
-                )}
-              </>
-            )}
-          </div>
 
           {/* Right side - Theme toggle & User menu */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors cursor-pointer"
               aria-label="Toggle theme"
             >
               {theme === "light" ? (
                 <svg
-                  className="w-5 h-5"
+                  className="w-5 h-5 text-gray-700 dark:text-gray-300"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -99,7 +85,7 @@ export const Header = () => {
                 </svg>
               ) : (
                 <svg
-                  className="w-5 h-5"
+                  className="w-5 h-5 text-gray-700 dark:text-gray-300"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -113,10 +99,12 @@ export const Header = () => {
             </button>
 
             {isAuthenticated && (
-              <div className="relative">
+              <div className="relative" ref={menuRef}>
                 <button
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  className="flex items-center space-x-2 text-sm focus:outline-none"
+                  className="flex items-center space-x-2 text-sm focus:outline-none cursor-pointer"
+                  aria-expanded={isMenuOpen}
+                  aria-haspopup="true"
                 >
                   <div
                     className={`w-8 h-8 rounded-full flex items-center justify-center text-white ${
@@ -129,7 +117,9 @@ export const Header = () => {
                     {user?.fullName}
                   </span>
                   <svg
-                    className="w-4 h-4 text-gray-500"
+                    className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${
+                      isMenuOpen ? "rotate-180" : ""
+                    }`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -145,12 +135,17 @@ export const Header = () => {
 
                 {/* Dropdown Menu */}
                 {isMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 border border-gray-200 dark:border-gray-700">
+                  <div
+                    className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 border border-gray-200 dark:border-gray-700 transform transition-all duration-200 ease-in-out z-50"
+                    role="menu"
+                    aria-orientation="vertical"
+                    aria-labelledby="user-menu"
+                  >
                     <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
                       <p className="text-sm font-medium text-gray-900 dark:text-white">
                         {user?.fullName}
                       </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                         {user?.email}
                       </p>
                       <span
@@ -170,15 +165,17 @@ export const Header = () => {
                         <>
                           <Link
                             href="/dashboard"
-                            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors"
                             onClick={() => setIsMenuOpen(false)}
+                            role="menuitem"
                           >
                             Dashboard
                           </Link>
                           <Link
                             href="/company-data"
-                            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors"
                             onClick={() => setIsMenuOpen(false)}
+                            role="menuitem"
                           >
                             Submit Data
                           </Link>
@@ -187,8 +184,9 @@ export const Header = () => {
                       {isAdmin && (
                         <Link
                           href="/admin/dashboard"
-                          className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors"
                           onClick={() => setIsMenuOpen(false)}
+                          role="menuitem"
                         >
                           Admin Dashboard
                         </Link>
@@ -200,7 +198,8 @@ export const Header = () => {
                         handleLogout();
                         setIsMenuOpen(false);
                       }}
-                      className="block w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      className="block w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+                      role="menuitem"
                     >
                       Logout
                     </button>
