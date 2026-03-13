@@ -1,0 +1,24 @@
+# Use Node 20 (required by Prisma 7.x and Firebase packages)
+FROM node:20-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files first
+COPY package*.json ./
+
+# Install dependencies (production only)
+RUN npm ci --omit=dev
+
+# Copy the rest of the source code
+COPY . .
+
+# Build the NestJS project
+RUN npm run build
+
+# Environment variables
+ENV PORT=3000
+EXPOSE 3000
+
+# Start the compiled app
+CMD ["node", "dist/src/main.js"]
