@@ -47,7 +47,7 @@ export class ConfigService {
   }
 
   get port(): number {
-    return parseInt(process.env.PORT || '3000', 10);
+    return parseInt(process.env.PORT || '5000', 10);
   }
 
   get appName(): string {
