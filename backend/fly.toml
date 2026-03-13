@@ -4,10 +4,10 @@ app = "taskmaster-api"   # your app name on Fly
   builder = "heroku/buildpacks:20"
 
 [env]
-  PORT = "5000"          # Fly expects you to expose this port
+  PORT = "8080"          # Fly expects you to expose this port
 
 [[services]]
-  internal_port = 5000   # must match process.env.PORT
+  internal_port = 8080   # must match process.env.PORT
   processes = ["app"]
   protocol = "tcp"
 

@@ -64,7 +64,7 @@ async function bootstrap() {
   // Global prefix
   app.setGlobalPrefix('api');
 
-  const port = process.env.PORT || configService.port || 5000;
+  const port = process.env.PORT || configService.port || 8080;
   await app.listen(port, '0.0.0.0');
 
   console.log(`🚀 TaskMaster API running on: http://0.0.0.0:${port}/api`);
