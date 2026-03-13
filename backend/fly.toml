@@ -1,14 +1,10 @@
-app = "backend-rough-night-5813"
-   # your app name on Fly
-
-[build]
-  builder = "heroku/buildpacks:20"
+app = "task-master-jtoeja"
 
 [env]
-  PORT = "3000"          # Fly expects you to expose this port
+  PORT = "3000"
 
 [[services]]
-  internal_port = 3000   # must match process.env.PORT
+  internal_port = 3000
   processes = ["app"]
   protocol = "tcp"
 
