@@ -1,3 +1,4 @@
+import { Request, Response } from 'express';
 import { LoggerService } from '@/utils/common/logger/logger.service';
 import { PrismaService } from '@/utils/prisma/prisma.service';
 import {
