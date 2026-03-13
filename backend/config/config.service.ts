@@ -7,7 +7,7 @@ dotenv.config();
 @Injectable()
 export class ConfigService {
   constructor() {
-    // Validate required environment variables
+    // === Validate required environment variables
     this.validateConfig();
   }
 
