@@ -2,7 +2,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { v2 as cloudinary } from 'cloudinary';
 import { ConfigService } from '@config/config.service';
 import * as streamifier from 'streamifier';
-import { Multer } from 'multer';
+import * as  Multer from 'multer';
 import { Express } from 'express';
 
 @Injectable()
