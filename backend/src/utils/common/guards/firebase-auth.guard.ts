@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { SessionService } from '../../sessions/session.service';
 import { PrismaService } from '../../prisma/prisma.service';
-import { getFirebaseAuth } from '@/config/firebase.config';
+import { getFirebaseAuth } from '@config/firebase.config';
 
 @Injectable()
 export class FirebaseAuthGuard implements CanActivate {

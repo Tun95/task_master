@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import { LoggerService } from '../common/logger/logger.service';
 import { EmailTemplates } from './templates/email.templates';
-import { ConfigService } from '@/config/config.service';
+import { ConfigService } from '@config/config.service';
 
 // Define Attachment type locally since it's not exported
 type Attachment = {

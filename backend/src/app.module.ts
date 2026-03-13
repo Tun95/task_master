@@ -8,7 +8,7 @@ import { RequestLoggerMiddleware } from './utils/common/middleware/logger.middle
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CronModule } from './utils/cron/cron.module';
-import { ConfigModule } from '@/config/config.module';
+import { ConfigModule } from '@config/config.module';
 import { UserModule } from './user/user.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 

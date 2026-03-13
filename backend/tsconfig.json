@@ -21,7 +21,7 @@
       "@/*": ["src/*"],
       "@auth/*": ["src/auth/*"],
       "@common/*": ["src/utils/common/*"],
-      "@config/*": ["src/config/*"],
+      "@config/*": ["config/*"],
       "@prisma/*": ["src/utils/prisma/*"],
       "@email/*": ["src/utils/email/*"]
     }
