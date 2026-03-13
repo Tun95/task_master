@@ -1,4 +1,4 @@
-app = "task-master-api"
+app = "task-master-hvc-sa"
 
 [env]
   PORT = "5000"
