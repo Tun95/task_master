@@ -9,7 +9,7 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: "lh3.googleusercontent.com", // For Google auth avatars if you use them
+        hostname: "lh3.googleusercontent.com",
         pathname: "/**",
       },
     ],
@@ -18,8 +18,19 @@ const nextConfig = {
   serverRuntimeConfig: {
     fetchTimeout: 50000,
   },
+
   publicRuntimeConfig: {
     apiUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000",
+  },
+
+  // Add rewrites to proxy API requests to your backend
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: "http://203.161.49.37:5005/api/:path*",
+      },
+    ];
   },
 };
 
