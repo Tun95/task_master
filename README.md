@@ -14,7 +14,8 @@ This API handles authentication, user management, company submissions, image upl
 Example:
 
 ```
-http://localhost:5000
+LOCAL: http://localhost:5000
+DEMO: http://203.161.49.37
 ```
 
 ---
@@ -624,13 +625,28 @@ npm run dev
 Backend API:
 
 ```
-http://localhost:5000
+LOCAL: http://localhost:5000
+OR
+DEMO: http://203.161.49.37:5005
 ```
 
 Frontend App:
 
 ```
-http://localhost:3000
+LOCAL: http://localhost:3000
+OR
+DEMO: http://203.161.49.37
+```
+
+```
+USER A:
+EMAIL: akandetunji2@gmail.com
+PASS: Akande95+
+```
+```
+USER B:
+EMAIL: shopmate400@gmail.com
+PASS: Shopmate400+
 ```
 
 ---
