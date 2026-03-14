@@ -7,8 +7,9 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "build:prod": "tsc -p tsconfig.prod.json",
     "start": "node dist/src/main.js",
-    "start:prod": "npm run build && node dist/src/main.js",
+    "start:prod": "npm run build:prod && node dist/src/main.js",
     "start:dev": "nest start --watch"
   },
   "_moduleAliases": {
