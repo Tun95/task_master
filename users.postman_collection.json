@@ -1,0 +1,1136 @@
+{
+	"info": {
+		"_postman_id": "69404d27-13b7-4a07-a509-e202b339a82c",
+		"name": "users",
+		"description": "# Users API Documentation\n\n## Base URL\n\nAll endpoints are prefixed with: `{{base_url}}`\n\n> ⚠️ **Important:** All endpoints in this section require **authentication**.  \nA valid **session/token** must be provided in the request headers. \n  \n\n---\n\n# Admin Endpoints\n\nThese endpoints can only be accessed by **admin accounts**.\n\n---\n\n# Upload Image to User\n\nUpload an image to a specific user account.\n\n**Endpoint:** `POST /api/users/admin/upload-to-user/:userId`\n\n### Request\n\n**Content-Type:** `multipart/form-data`\n\n| Key | Type | Description |\n| --- | --- | --- |\n| image | file | Image file to upload |\n\nExample (Form Data)\n\n```\nkey: image\nvalue: image file\n\n ```\n\n### Success Response (200)\n\n``` json\n{\n  \"message\": \"Image uploaded successfully to user\",\n  \"image\": {\n    \"id\": \"cmmnd0z3m0000pp3wr84oxags\",\n    \"url\": \"https://res.cloudinary.com/dstj5eqcd/image/upload/v1773313423/taskmaster/user-images/cmmncaqi30001xj3w7i6kkwox-1773313419952.png\",\n    \"filename\": \"taskmaster/user-images/cmmncaqi30001xj3w7i6kkwox-1773313419952\",\n    \"uploadedAt\": \"2026-03-12T11:03:44.049Z\"\n  }\n}\n\n ```\n\n---\n\n# Fetch User Dashboard (Recent Changes)\n\nRetrieve a user's **latest activity**, including their most recent submission and uploaded image.\n\n**Endpoint:** `GET /api/users/admin/user-dashboard/:userId`\n\n### Success Response (200)\n\n``` json\n{\n  \"user\": {\n    \"id\": \"cmmncaqi30001xj3w7i6kkwox\",\n    \"name\": \"Tunji Akande\",\n    \"email\": \"akandetunji2@gmail.com\",\n    \"memberSince\": \"2026-03-12T10:43:19.851Z\"\n  },\n  \"mostRecentSubmission\": {\n    \"id\": \"cmmne0i500000ce3wltgidhp4\",\n    \"companyName\": \"Tech Solutions Ltd\",\n    \"numberOfUsers\": 50,\n    \"numberOfProducts\": 150,\n    \"percentage\": 300,\n    \"submittedAt\": \"2026-03-12T11:31:21.683Z\"\n  },\n  \"recentImage\": {\n    \"id\": \"cmmnd0z3m0000pp3wr84oxags\",\n    \"url\": \"https://res.cloudinary.com/dstj5eqcd/image/upload/v1773313423/taskmaster/user-images/cmmncaqi30001xj3w7i6kkwox-1773313419952.png\",\n    \"filename\": \"taskmaster/user-images/cmmncaqi30001xj3w7i6kkwox-1773313419952\",\n    \"uploadedBy\": \"Admin\",\n    \"uploadedAt\": \"2026-03-12T11:03:44.049Z\"\n  },\n  \"hasData\": true,\n  \"hasImage\": true\n}\n\n ```\n\n---\n\n# Fetch All Users\n\nRetrieve a paginated list of **users and admins** with optional filtering and search.\n\n**Endpoint:**\n\n```\nGET /api/users/admin/users?search=tunji&role=USER&sortBy=createdAt&sortOrder=desc&page=1&limit=10\n\n ```\n\n### Query Parameters\n\n| Parameter | Description |\n| --- | --- |\n| search | Search users by name or email |\n| role | Filter by role (`USER` or `ADMIN`) |\n| sortBy | Field to sort results |\n| sortOrder | `asc` or `desc` |\n| page | Page number |\n| limit | Number of results per page |\n\n### Success Response (200)\n\n``` json\n{\n  \"data\": [\n    {\n      \"id\": \"cmmncaqi30001xj3w7i6kkwox\",\n      \"email\": \"akandetunji2@gmail.com\",\n      \"firebaseUid\": \"YO2TrOAIIuWwyvCmtYjSuwgQeUn1\",\n      \"fullName\": \"Tunji Akande\",\n      \"role\": \"USER\",\n      \"isEmailVerified\": true,\n      \"createdAt\": \"2026-03-12T10:43:19.851Z\",\n      \"updatedAt\": \"2026-03-12T10:43:55.290Z\",\n      \"companyData\": {\n        \"id\": \"cmmnhtizw0002dp3wny2uw3z4\",\n        \"companyName\": \"Starlab\",\n        \"numberOfUsers\": 60,\n        \"numberOfProducts\": 200,\n        \"percentage\": 333.33\n      },\n      \"receivedImages\": []\n    }\n  ],\n  \"meta\": {\n    \"page\": 1,\n    \"limit\": 10,\n    \"total\": 2,\n    \"totalUsers\": 1,\n    \"totalAdmins\": 1,\n    \"pages\": 1\n  }\n}\n\n ```\n\n---\n\n# Fetch User by ID\n\nRetrieve complete details for a specific user.\n\n**Endpoint:** `GET /api/users/admin/users/:userId`\n\n### Success Response (200)\n\n``` json\n{\n  \"id\": \"cmmncaqi30001xj3w7i6kkwox\",\n  \"email\": \"akandetunji2@gmail.com\",\n  \"firebaseUid\": \"YO2TrOAIIuWwyvCmtYjSuwgQeUn1\",\n  \"fullName\": \"Tunji Akande\",\n  \"role\": \"USER\",\n  \"isEmailVerified\": true,\n  \"createdAt\": \"2026-03-12T10:43:19.851Z\",\n  \"updatedAt\": \"2026-03-12T10:43:55.290Z\",\n  \"companyData\": {\n    \"companyName\": \"Starlab\",\n    \"numberOfUsers\": 60,\n    \"numberOfProducts\": 200,\n    \"percentage\": 333.33\n  },\n  \"receivedImages\": []\n}\n\n ```\n\n---\n\n# Fetch Users Statistics\n\nRetrieve statistics about users and admins.\n\n**Endpoint:** `GET /api/users/admin/users/stats`\n\n### Success Response (200)\n\n``` json\n{\n  \"total\": {\n    \"users\": 1,\n    \"admins\": 1,\n    \"all\": 2\n  },\n  \"active\": {\n    \"usersWithCompanyData\": 3\n  },\n  \"recent\": {\n    \"users\": [\n      {\n        \"id\": \"cmmncaqi30001xj3w7i6kkwox\",\n        \"email\": \"akandetunji2@gmail.com\",\n        \"fullName\": \"Tunji Akande\",\n        \"createdAt\": \"2026-03-12T10:43:19.851Z\"\n      }\n    ],\n    \"admins\": [\n      {\n        \"id\": \"cmmn9jnm00005n23wdb8f4cbr\",\n        \"email\": \"shopmate400@gmail.com\",\n        \"fullName\": \"Admin\",\n        \"createdAt\": \"2026-03-12T09:26:17.160Z\"\n      }\n    ]\n  }\n}\n\n ```\n\n---\n\n# User Endpoints\n\nThese endpoints are accessible to **authenticated users**.\n\n---\n\n# Submit Company Data\n\nSubmit company information associated with the logged-in user.\n\n**Endpoint:** `POST /api/users/company-data`\n\n### Request Body\n\n``` json\n{\n  \"companyName\": \"Tech Solutions Ltd\",\n  \"numberOfUsers\": 50,\n  \"numberOfProducts\": 150\n}\n\n ```\n\n### Percentage Calculation\n\nThe **percentage value** is automatically calculated using:\n\n```\n(numberOfProducts / numberOfUsers) * 100\n\n ```\n\n### Success Response (200)\n\n``` json\n{\n  \"message\": \"Company data created successfully\",\n  \"data\": {\n    \"id\": \"cmmncbxsc0004xj3wq0j9qzbu\",\n    \"companyName\": \"Tech Solutions Ltd\",\n    \"numberOfUsers\": 50,\n    \"numberOfProducts\": 150,\n    \"percentage\": 300,\n    \"userId\": \"cmmncaqi30001xj3w7i6kkwox\",\n    \"createdAt\": \"2026-03-12T10:44:15.948Z\",\n    \"updatedAt\": \"2026-03-12T10:44:15.948Z\"\n  }\n}\n\n ```\n\n---\n\n---\n\n## User Profile\n\nRetrieve the **authenticated user's profile information**, including:\n\n- account details\n    \n- submitted company data\n    \n- images uploaded by admins\n    \n- total image count\n    \n\n> 🔒 **Authentication Required** \n  \n\n**Endpoint**\n\n```\nGET /api/users/profile\n\n ```\n\n### Success Response (200)\n\n``` json\n{\n  \"id\": \"cmmncaqi30001xj3w7i6kkwox\",\n  \"email\": \"akandetunji2@gmail.com\",\n  \"firebaseUid\": \"YO2TrOAIIuWwyvCmtYjSuwgQeUn1\",\n  \"fullName\": \"Tunji Akande\",\n  \"role\": \"USER\",\n  \"isEmailVerified\": true,\n  \"createdAt\": \"2026-03-12T10:43:19.851Z\",\n  \"updatedAt\": \"2026-03-12T10:43:55.290Z\",\n  \"companyData\": [\n    {\n      \"id\": \"cmmo527pa000ayl3wt793t9du\",\n      \"companyName\": \"Starlab\",\n      \"numberOfUsers\": 23,\n      \"numberOfProducts\": 45,\n      \"percentage\": 195.65,\n      \"userId\": \"cmmncaqi30001xj3w7i6kkwox\",\n      \"createdAt\": \"2026-03-13T00:08:31.102Z\",\n      \"updatedAt\": \"2026-03-13T00:08:31.102Z\"\n    }\n  ],\n  \"receivedImages\": [\n    {\n      \"id\": \"cmmo358iz0004yl3w3pfyne86\",\n      \"filename\": \"taskmaster/user-images/cmmncaqi30001xj3w7i6kkwox-1773357289581\",\n      \"originalName\": \"VPC-eu-north-1-03-06-2026_04_03_PM.png\",\n      \"path\": \"https://res.cloudinary.com/dstj5eqcd/image/upload/v1773357292/taskmaster/user-images/cmmncaqi30001xj3w7i6kkwox-1773357289581.png\",\n      \"mimetype\": \"image/png\",\n      \"size\": 181982,\n      \"uploadedById\": \"cmmn9jnm00005n23wdb8f4cbr\",\n      \"userId\": \"cmmncaqi30001xj3w7i6kkwox\",\n      \"createdAt\": \"2026-03-12T23:14:52.906Z\",\n      \"uploadedBy\": {\n        \"id\": \"cmmn9jnm00005n23wdb8f4cbr\",\n        \"fullName\": \"Admin\",\n        \"email\": \"shopmate400@gmail.com\"\n      }\n    },\n    {\n      \"id\": \"cmmo32cms0003yl3w0gm282g8\",\n      \"filename\": \"taskmaster/user-images/cmmncaqi30001xj3w7i6kkwox-1773357153064\",\n      \"originalName\": \"Route-53-dashboard-Route-53-Global-03-06-2026_04_00_PM.png\",\n      \"path\": \"https://res.cloudinary.com/dstj5eqcd/image/upload/v1773357157/taskmaster/user-images/cmmncaqi30001xj3w7i6kkwox-1773357153064.png\",\n      \"mimetype\": \"image/png\",\n      \"size\": 263012,\n      \"uploadedById\": \"cmmn9jnm00005n23wdb8f4cbr\",\n      \"userId\": \"cmmncaqi30001xj3w7i6kkwox\",\n      \"createdAt\": \"2026-03-12T23:12:38.260Z\",\n      \"uploadedBy\": {\n        \"id\": \"cmmn9jnm00005n23wdb8f4cbr\",\n        \"fullName\": \"Admin\",\n        \"email\": \"shopmate400@gmail.com\"\n      }\n    }\n  ],\n  \"imageCount\": 4\n}\n\n ```\n\n### Response Fields\n\n| Field | Description |\n| --- | --- |\n| id | Unique user identifier |\n| email | User email address |\n| fullName | User full name |\n| role | Account role (`USER` or `ADMIN`) |\n| companyData | List of company submissions by the user |\n| receivedImages | Images uploaded by admins for the user |\n| imageCount | Total number of images uploaded to the user |\n\n---",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "23111537",
+		"_collection_link": "https://cloudy-space-392403.postman.co/workspace/task_master~ae4f4e68-8018-4f07-aa95-e418c5d2a608/collection/23111537-69404d27-13b7-4a07-a509-e202b339a82c?action=share&source=collection_link&creator=23111537"
+	},
+	"item": [
+		{
+			"name": "admin",
+			"item": [
+				{
+					"name": "admin: upload for user",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "image",
+									"type": "file",
+									"src": "/home/akande/Downloads/Gallery-Henosis-International-02-25-2026_10_49_AM.png"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/admin/upload-to-user/:userId",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"admin",
+								"upload-to-user",
+								":userId"
+							],
+							"variable": [
+								{
+									"key": "userId",
+									"value": "cmmncaqi30001xj3w7i6kkwox"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "200",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "image",
+											"type": "file",
+											"src": "/home/akande/Downloads/Route-53-dashboard-Route-53-Global-03-06-2026_04_00_PM.png"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}/api/users/admin/upload-to-user/:userId",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"users",
+										"admin",
+										"upload-to-user",
+										":userId"
+									],
+									"variable": [
+										{
+											"key": "userId",
+											"value": "cmmncaqi30001xj3w7i6kkwox"
+										}
+									]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Security-Policy",
+									"value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Resource-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Origin-Agent-Cluster",
+									"value": "?1"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "no-referrer"
+								},
+								{
+									"key": "Strict-Transport-Security",
+									"value": "max-age=31536000; includeSubDomains"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "X-DNS-Prefetch-Control",
+									"value": "off"
+								},
+								{
+									"key": "X-Download-Options",
+									"value": "noopen"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "SAMEORIGIN"
+								},
+								{
+									"key": "X-Permitted-Cross-Domain-Policies",
+									"value": "none"
+								},
+								{
+									"key": "X-XSS-Protection",
+									"value": "0"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "http://localhost:3000"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "345"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"159-HP8WNCl6bBCHmb6KHMlPnssR7dA\""
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 12 Mar 2026 11:03:44 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"message\": \"Image uploaded successfully to user\",\n    \"image\": {\n        \"id\": \"cmmnd0z3m0000pp3wr84oxags\",\n        \"url\": \"https://res.cloudinary.com/dstj5eqcd/image/upload/v1773313423/taskmaster/user-images/cmmncaqi30001xj3w7i6kkwox-1773313419952.png\",\n        \"filename\": \"taskmaster/user-images/cmmncaqi30001xj3w7i6kkwox-1773313419952\",\n        \"uploadedAt\": \"2026-03-12T11:03:44.049Z\"\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "admin: fetch user recent changes",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/users/admin/user-dashboard/:userId",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"admin",
+								"user-dashboard",
+								":userId"
+							],
+							"variable": [
+								{
+									"key": "userId",
+									"value": "cmmncaqi30001xj3w7i6kkwox"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "200",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/users/admin/user-dashboard/:userId",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"users",
+										"admin",
+										"user-dashboard",
+										":userId"
+									],
+									"variable": [
+										{
+											"key": "userId",
+											"value": "cmmncaqi30001xj3w7i6kkwox"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Security-Policy",
+									"value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Resource-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Origin-Agent-Cluster",
+									"value": "?1"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "no-referrer"
+								},
+								{
+									"key": "Strict-Transport-Security",
+									"value": "max-age=31536000; includeSubDomains"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "X-DNS-Prefetch-Control",
+									"value": "off"
+								},
+								{
+									"key": "X-Download-Options",
+									"value": "noopen"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "SAMEORIGIN"
+								},
+								{
+									"key": "X-Permitted-Cross-Domain-Policies",
+									"value": "none"
+								},
+								{
+									"key": "X-XSS-Protection",
+									"value": "0"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "http://localhost:3000"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "686"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"2ae-p8Th5X8J51+HxLnPiz6ShaJrVtE\""
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 12 Mar 2026 11:31:48 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"user\": {\n        \"id\": \"cmmncaqi30001xj3w7i6kkwox\",\n        \"name\": \"Tunji Akande\",\n        \"email\": \"akandetunji2@gmail.com\",\n        \"memberSince\": \"2026-03-12T10:43:19.851Z\"\n    },\n    \"mostRecentSubmission\": {\n        \"id\": \"cmmne0i500000ce3wltgidhp4\",\n        \"companyName\": \"Tech Solutions Ltd\",\n        \"numberOfUsers\": 50,\n        \"numberOfProducts\": 150,\n        \"percentage\": 300,\n        \"submittedAt\": \"2026-03-12T11:31:21.683Z\"\n    },\n    \"recentImage\": {\n        \"id\": \"cmmnd0z3m0000pp3wr84oxags\",\n        \"url\": \"https://res.cloudinary.com/dstj5eqcd/image/upload/v1773313423/taskmaster/user-images/cmmncaqi30001xj3w7i6kkwox-1773313419952.png\",\n        \"filename\": \"taskmaster/user-images/cmmncaqi30001xj3w7i6kkwox-1773313419952\",\n        \"uploadedBy\": \"Admin\",\n        \"uploadedAt\": \"2026-03-12T11:03:44.049Z\"\n    },\n    \"hasData\": true,\n    \"hasImage\": true\n}"
+						}
+					]
+				},
+				{
+					"name": "admin: fetch all (optional)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/users/admin/users?search=tunji&role=USER&sortBy=createdAt&sortOrder=desc&page=1&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"admin",
+								"users"
+							],
+							"query": [
+								{
+									"key": "search",
+									"value": "tunji"
+								},
+								{
+									"key": "role",
+									"value": "USER"
+								},
+								{
+									"key": "sortBy",
+									"value": "createdAt"
+								},
+								{
+									"key": "sortOrder",
+									"value": "desc"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "200",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/users/admin/users?sortBy=createdAt&sortOrder=desc&page=1&limit=10",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"users",
+										"admin",
+										"users"
+									],
+									"query": [
+										{
+											"key": "search",
+											"value": "tunji",
+											"disabled": true
+										},
+										{
+											"key": "role",
+											"value": "USER",
+											"disabled": true
+										},
+										{
+											"key": "sortBy",
+											"value": "createdAt"
+										},
+										{
+											"key": "sortOrder",
+											"value": "desc"
+										},
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "10"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Security-Policy",
+									"value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Resource-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Origin-Agent-Cluster",
+									"value": "?1"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "no-referrer"
+								},
+								{
+									"key": "Strict-Transport-Security",
+									"value": "max-age=31536000; includeSubDomains"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "X-DNS-Prefetch-Control",
+									"value": "off"
+								},
+								{
+									"key": "X-Download-Options",
+									"value": "noopen"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "SAMEORIGIN"
+								},
+								{
+									"key": "X-Permitted-Cross-Domain-Policies",
+									"value": "none"
+								},
+								{
+									"key": "X-XSS-Protection",
+									"value": "0"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "http://localhost:3000"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "1817"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"719-P+7/FTnMOL5yRXBhMHnBvq7MahQ\""
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 12 Mar 2026 13:59:30 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"data\": [\n        {\n            \"id\": \"cmmncaqi30001xj3w7i6kkwox\",\n            \"email\": \"akandetunji2@gmail.com\",\n            \"firebaseUid\": \"YO2TrOAIIuWwyvCmtYjSuwgQeUn1\",\n            \"fullName\": \"Tunji Akande\",\n            \"role\": \"USER\",\n            \"isEmailVerified\": true,\n            \"createdAt\": \"2026-03-12T10:43:19.851Z\",\n            \"updatedAt\": \"2026-03-12T10:43:55.290Z\",\n            \"companyData\": {\n                \"id\": \"cmmnhtizw0002dp3wny2uw3z4\",\n                \"companyName\": \"Starlab\",\n                \"numberOfUsers\": 60,\n                \"numberOfProducts\": 200,\n                \"percentage\": 333.33,\n                \"userId\": \"cmmncaqi30001xj3w7i6kkwox\",\n                \"createdAt\": \"2026-03-12T13:17:54.668Z\",\n                \"updatedAt\": \"2026-03-12T13:17:54.668Z\"\n            },\n            \"receivedImages\": [\n                {\n                    \"id\": \"cmmne2hld0002ce3wbh381fz7\",\n                    \"filename\": \"taskmaster/user-images/cmmncaqi30001xj3w7i6kkwox-1773315170435\",\n                    \"originalName\": \"Gallery-Henosis-International-02-25-2026_10_49_AM.png\",\n                    \"path\": \"https://res.cloudinary.com/dstj5eqcd/image/upload/v1773315173/taskmaster/user-images/cmmncaqi30001xj3w7i6kkwox-1773315170435.png\",\n                    \"mimetype\": \"image/png\",\n                    \"size\": 137162,\n                    \"uploadedById\": \"cmmn9jnm00005n23wdb8f4cbr\",\n                    \"userId\": \"cmmncaqi30001xj3w7i6kkwox\",\n                    \"createdAt\": \"2026-03-12T11:32:54.289Z\"\n                },\n                {\n                    \"id\": \"cmmnd0z3m0000pp3wr84oxags\",\n                    \"filename\": \"taskmaster/user-images/cmmncaqi30001xj3w7i6kkwox-1773313419952\",\n                    \"originalName\": \"Route-53-dashboard-Route-53-Global-03-06-2026_04_00_PM.png\",\n                    \"path\": \"https://res.cloudinary.com/dstj5eqcd/image/upload/v1773313423/taskmaster/user-images/cmmncaqi30001xj3w7i6kkwox-1773313419952.png\",\n                    \"mimetype\": \"image/png\",\n                    \"size\": 263012,\n                    \"uploadedById\": \"cmmn9jnm00005n23wdb8f4cbr\",\n                    \"userId\": \"cmmncaqi30001xj3w7i6kkwox\",\n                    \"createdAt\": \"2026-03-12T11:03:44.049Z\"\n                }\n            ]\n        },\n        {\n            \"id\": \"cmmn9jnm00005n23wdb8f4cbr\",\n            \"email\": \"shopmate400@gmail.com\",\n            \"firebaseUid\": \"Q6rgABtz1KZjsm5KPmrzw63rgZj1\",\n            \"fullName\": \"Admin\",\n            \"role\": \"ADMIN\",\n            \"isEmailVerified\": true,\n            \"createdAt\": \"2026-03-12T09:26:17.160Z\",\n            \"updatedAt\": \"2026-03-12T09:27:39.726Z\"\n        }\n    ],\n    \"meta\": {\n        \"page\": 1,\n        \"limit\": 10,\n        \"total\": 2,\n        \"totalUsers\": 1,\n        \"totalAdmins\": 1,\n        \"pages\": 1\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "admin: fetch by id (optional)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/users/admin/users/:userId",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"admin",
+								"users",
+								":userId"
+							],
+							"variable": [
+								{
+									"key": "userId",
+									"value": "cmmncaqi30001xj3w7i6kkwox"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "200",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/users/admin/users/:userId",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"users",
+										"admin",
+										"users",
+										":userId"
+									],
+									"variable": [
+										{
+											"key": "userId",
+											"value": "cmmncaqi30001xj3w7i6kkwox"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Security-Policy",
+									"value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Resource-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Origin-Agent-Cluster",
+									"value": "?1"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "no-referrer"
+								},
+								{
+									"key": "Strict-Transport-Security",
+									"value": "max-age=31536000; includeSubDomains"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "X-DNS-Prefetch-Control",
+									"value": "off"
+								},
+								{
+									"key": "X-Download-Options",
+									"value": "noopen"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "SAMEORIGIN"
+								},
+								{
+									"key": "X-Permitted-Cross-Domain-Policies",
+									"value": "none"
+								},
+								{
+									"key": "X-XSS-Protection",
+									"value": "0"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "http://localhost:3000"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "1479"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"5c7-QfTrorwK2iV5tQPwyKw8ZcLI2QY\""
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 12 Mar 2026 14:01:06 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"id\": \"cmmncaqi30001xj3w7i6kkwox\",\n    \"email\": \"akandetunji2@gmail.com\",\n    \"firebaseUid\": \"YO2TrOAIIuWwyvCmtYjSuwgQeUn1\",\n    \"fullName\": \"Tunji Akande\",\n    \"role\": \"USER\",\n    \"isEmailVerified\": true,\n    \"createdAt\": \"2026-03-12T10:43:19.851Z\",\n    \"updatedAt\": \"2026-03-12T10:43:55.290Z\",\n    \"companyData\": {\n        \"id\": \"cmmnhtizw0002dp3wny2uw3z4\",\n        \"companyName\": \"Starlab\",\n        \"numberOfUsers\": 60,\n        \"numberOfProducts\": 200,\n        \"percentage\": 333.33,\n        \"userId\": \"cmmncaqi30001xj3w7i6kkwox\",\n        \"createdAt\": \"2026-03-12T13:17:54.668Z\",\n        \"updatedAt\": \"2026-03-12T13:17:54.668Z\"\n    },\n    \"receivedImages\": [\n        {\n            \"id\": \"cmmne2hld0002ce3wbh381fz7\",\n            \"filename\": \"taskmaster/user-images/cmmncaqi30001xj3w7i6kkwox-1773315170435\",\n            \"originalName\": \"Gallery-Henosis-International-02-25-2026_10_49_AM.png\",\n            \"path\": \"https://res.cloudinary.com/dstj5eqcd/image/upload/v1773315173/taskmaster/user-images/cmmncaqi30001xj3w7i6kkwox-1773315170435.png\",\n            \"mimetype\": \"image/png\",\n            \"size\": 137162,\n            \"uploadedById\": \"cmmn9jnm00005n23wdb8f4cbr\",\n            \"userId\": \"cmmncaqi30001xj3w7i6kkwox\",\n            \"createdAt\": \"2026-03-12T11:32:54.289Z\"\n        },\n        {\n            \"id\": \"cmmnd0z3m0000pp3wr84oxags\",\n            \"filename\": \"taskmaster/user-images/cmmncaqi30001xj3w7i6kkwox-1773313419952\",\n            \"originalName\": \"Route-53-dashboard-Route-53-Global-03-06-2026_04_00_PM.png\",\n            \"path\": \"https://res.cloudinary.com/dstj5eqcd/image/upload/v1773313423/taskmaster/user-images/cmmncaqi30001xj3w7i6kkwox-1773313419952.png\",\n            \"mimetype\": \"image/png\",\n            \"size\": 263012,\n            \"uploadedById\": \"cmmn9jnm00005n23wdb8f4cbr\",\n            \"userId\": \"cmmncaqi30001xj3w7i6kkwox\",\n            \"createdAt\": \"2026-03-12T11:03:44.049Z\"\n        }\n    ]\n}"
+						}
+					]
+				},
+				{
+					"name": "admin: fetch users stats (optional)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/users/admin/users/stats",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"admin",
+								"users",
+								"stats"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "200",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/users/admin/users/stats",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"users",
+										"admin",
+										"users",
+										"stats"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Security-Policy",
+									"value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Resource-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Origin-Agent-Cluster",
+									"value": "?1"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "no-referrer"
+								},
+								{
+									"key": "Strict-Transport-Security",
+									"value": "max-age=31536000; includeSubDomains"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "X-DNS-Prefetch-Control",
+									"value": "off"
+								},
+								{
+									"key": "X-Download-Options",
+									"value": "noopen"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "SAMEORIGIN"
+								},
+								{
+									"key": "X-Permitted-Cross-Domain-Policies",
+									"value": "none"
+								},
+								{
+									"key": "X-XSS-Protection",
+									"value": "0"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "http://localhost:3000"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "366"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"16e-jlAPGjZ9SDfocFHk1Hh/SMg5I1o\""
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 12 Mar 2026 14:03:12 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"total\": {\n        \"users\": 1,\n        \"admins\": 1,\n        \"all\": 2\n    },\n    \"active\": {\n        \"usersWithCompanyData\": 3\n    },\n    \"recent\": {\n        \"users\": [\n            {\n                \"id\": \"cmmncaqi30001xj3w7i6kkwox\",\n                \"email\": \"akandetunji2@gmail.com\",\n                \"fullName\": \"Tunji Akande\",\n                \"createdAt\": \"2026-03-12T10:43:19.851Z\"\n            }\n        ],\n        \"admins\": [\n            {\n                \"id\": \"cmmn9jnm00005n23wdb8f4cbr\",\n                \"email\": \"shopmate400@gmail.com\",\n                \"fullName\": \"Admin\",\n                \"createdAt\": \"2026-03-12T09:26:17.160Z\"\n            }\n        ]\n    }\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "create company",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{auth_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"companyName\": \"Tech Solutions Ltd\",\n  \"numberOfUsers\": 20,\n  \"numberOfProducts\": 450\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/users/company-data",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"users",
+						"company-data"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "200",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"companyName\": \"Tech Solutions Ltd\",\n  \"numberOfUsers\": 50,\n  \"numberOfProducts\": 150\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/company-data",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"company-data"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Security-Policy",
+							"value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+						},
+						{
+							"key": "Cross-Origin-Opener-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Cross-Origin-Resource-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Origin-Agent-Cluster",
+							"value": "?1"
+						},
+						{
+							"key": "Referrer-Policy",
+							"value": "no-referrer"
+						},
+						{
+							"key": "Strict-Transport-Security",
+							"value": "max-age=31536000; includeSubDomains"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "X-DNS-Prefetch-Control",
+							"value": "off"
+						},
+						{
+							"key": "X-Download-Options",
+							"value": "noopen"
+						},
+						{
+							"key": "X-Frame-Options",
+							"value": "SAMEORIGIN"
+						},
+						{
+							"key": "X-Permitted-Cross-Domain-Policies",
+							"value": "none"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "0"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "http://localhost:3000"
+						},
+						{
+							"key": "Vary",
+							"value": "Origin"
+						},
+						{
+							"key": "Access-Control-Allow-Credentials",
+							"value": "true"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Content-Length",
+							"value": "298"
+						},
+						{
+							"key": "ETag",
+							"value": "W/\"12a-I6jR8u3eZUHqJNOiq+FPux2gpVk\""
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 12 Mar 2026 10:44:16 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"message\": \"Company data created successfully\",\n    \"data\": {\n        \"id\": \"cmmncbxsc0004xj3wq0j9qzbu\",\n        \"companyName\": \"Tech Solutions Ltd\",\n        \"numberOfUsers\": 50,\n        \"numberOfProducts\": 150,\n        \"percentage\": 300,\n        \"userId\": \"cmmncaqi30001xj3w7i6kkwox\",\n        \"createdAt\": \"2026-03-12T10:44:15.948Z\",\n        \"updatedAt\": \"2026-03-12T10:44:15.948Z\"\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "fetch profile",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{auth_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/users/profile",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"users",
+						"profile"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "200",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/users/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"profile"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Security-Policy",
+							"value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+						},
+						{
+							"key": "Cross-Origin-Opener-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Cross-Origin-Resource-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Origin-Agent-Cluster",
+							"value": "?1"
+						},
+						{
+							"key": "Referrer-Policy",
+							"value": "no-referrer"
+						},
+						{
+							"key": "Strict-Transport-Security",
+							"value": "max-age=31536000; includeSubDomains"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "X-DNS-Prefetch-Control",
+							"value": "off"
+						},
+						{
+							"key": "X-Download-Options",
+							"value": "noopen"
+						},
+						{
+							"key": "X-Frame-Options",
+							"value": "SAMEORIGIN"
+						},
+						{
+							"key": "X-Permitted-Cross-Domain-Policies",
+							"value": "none"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "0"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "http://localhost:3000"
+						},
+						{
+							"key": "Vary",
+							"value": "Origin"
+						},
+						{
+							"key": "Access-Control-Allow-Credentials",
+							"value": "true"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Content-Length",
+							"value": "2833"
+						},
+						{
+							"key": "ETag",
+							"value": "W/\"b11-rU09MY2yFjmlBnH8ymS8FQVEydM\""
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 13 Mar 2026 00:28:18 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"id\": \"cmmncaqi30001xj3w7i6kkwox\",\n    \"email\": \"akandetunji2@gmail.com\",\n    \"firebaseUid\": \"YO2TrOAIIuWwyvCmtYjSuwgQeUn1\",\n    \"fullName\": \"Tunji Akande\",\n    \"role\": \"USER\",\n    \"isEmailVerified\": true,\n    \"createdAt\": \"2026-03-12T10:43:19.851Z\",\n    \"updatedAt\": \"2026-03-12T10:43:55.290Z\",\n    \"companyData\": [\n        {\n            \"id\": \"cmmo527pa000ayl3wt793t9du\",\n            \"companyName\": \"Starlab\",\n            \"numberOfUsers\": 23,\n            \"numberOfProducts\": 45,\n            \"percentage\": 195.65,\n            \"userId\": \"cmmncaqi30001xj3w7i6kkwox\",\n            \"createdAt\": \"2026-03-13T00:08:31.102Z\",\n            \"updatedAt\": \"2026-03-13T00:08:31.102Z\"\n        }\n    ],\n    \"receivedImages\": [\n        {\n            \"id\": \"cmmo358iz0004yl3w3pfyne86\",\n            \"filename\": \"taskmaster/user-images/cmmncaqi30001xj3w7i6kkwox-1773357289581\",\n            \"originalName\": \"VPC-eu-north-1-03-06-2026_04_03_PM.png\",\n            \"path\": \"https://res.cloudinary.com/dstj5eqcd/image/upload/v1773357292/taskmaster/user-images/cmmncaqi30001xj3w7i6kkwox-1773357289581.png\",\n            \"mimetype\": \"image/png\",\n            \"size\": 181982,\n            \"uploadedById\": \"cmmn9jnm00005n23wdb8f4cbr\",\n            \"userId\": \"cmmncaqi30001xj3w7i6kkwox\",\n            \"createdAt\": \"2026-03-12T23:14:52.906Z\",\n            \"uploadedBy\": {\n                \"id\": \"cmmn9jnm00005n23wdb8f4cbr\",\n                \"fullName\": \"Admin\",\n                \"email\": \"shopmate400@gmail.com\"\n            }\n        },\n        {\n            \"id\": \"cmmo32cms0003yl3w0gm282g8\",\n            \"filename\": \"taskmaster/user-images/cmmncaqi30001xj3w7i6kkwox-1773357153064\",\n            \"originalName\": \"Route-53-dashboard-Route-53-Global-03-06-2026_04_00_PM.png\",\n            \"path\": \"https://res.cloudinary.com/dstj5eqcd/image/upload/v1773357157/taskmaster/user-images/cmmncaqi30001xj3w7i6kkwox-1773357153064.png\",\n            \"mimetype\": \"image/png\",\n            \"size\": 263012,\n            \"uploadedById\": \"cmmn9jnm00005n23wdb8f4cbr\",\n            \"userId\": \"cmmncaqi30001xj3w7i6kkwox\",\n            \"createdAt\": \"2026-03-12T23:12:38.260Z\",\n            \"uploadedBy\": {\n                \"id\": \"cmmn9jnm00005n23wdb8f4cbr\",\n                \"fullName\": \"Admin\",\n                \"email\": \"shopmate400@gmail.com\"\n            }\n        },\n        {\n            \"id\": \"cmmne2hld0002ce3wbh381fz7\",\n            \"filename\": \"taskmaster/user-images/cmmncaqi30001xj3w7i6kkwox-1773315170435\",\n            \"originalName\": \"Gallery-Henosis-International-02-25-2026_10_49_AM.png\",\n            \"path\": \"https://res.cloudinary.com/dstj5eqcd/image/upload/v1773315173/taskmaster/user-images/cmmncaqi30001xj3w7i6kkwox-1773315170435.png\",\n            \"mimetype\": \"image/png\",\n            \"size\": 137162,\n            \"uploadedById\": \"cmmn9jnm00005n23wdb8f4cbr\",\n            \"userId\": \"cmmncaqi30001xj3w7i6kkwox\",\n            \"createdAt\": \"2026-03-12T11:32:54.289Z\",\n            \"uploadedBy\": {\n                \"id\": \"cmmn9jnm00005n23wdb8f4cbr\",\n                \"fullName\": \"Admin\",\n                \"email\": \"shopmate400@gmail.com\"\n            }\n        },\n        {\n            \"id\": \"cmmnd0z3m0000pp3wr84oxags\",\n            \"filename\": \"taskmaster/user-images/cmmncaqi30001xj3w7i6kkwox-1773313419952\",\n            \"originalName\": \"Route-53-dashboard-Route-53-Global-03-06-2026_04_00_PM.png\",\n            \"path\": \"https://res.cloudinary.com/dstj5eqcd/image/upload/v1773313423/taskmaster/user-images/cmmncaqi30001xj3w7i6kkwox-1773313419952.png\",\n            \"mimetype\": \"image/png\",\n            \"size\": 263012,\n            \"uploadedById\": \"cmmn9jnm00005n23wdb8f4cbr\",\n            \"userId\": \"cmmncaqi30001xj3w7i6kkwox\",\n            \"createdAt\": \"2026-03-12T11:03:44.049Z\",\n            \"uploadedBy\": {\n                \"id\": \"cmmn9jnm00005n23wdb8f4cbr\",\n                \"fullName\": \"Admin\",\n                \"email\": \"shopmate400@gmail.com\"\n            }\n        }\n    ],\n    \"imageCount\": 4\n}"
+				}
+			]
+		}
+	]
+}

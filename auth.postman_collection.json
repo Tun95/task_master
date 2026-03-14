@@ -1,0 +1,1564 @@
+{
+	"info": {
+		"_postman_id": "e932262b-37d4-4675-a84f-5dde6717fe8a",
+		"name": "auth",
+		"description": "# Authentication API Documentation\n\n## Base URL\n\nAll endpoints are prefixed with: `{{base_url}}`\n\n---\n\n# Admin Registration\n\nRegister a new **admin account**. After registration, an **OTP verification email** will be sent.\n\n**Endpoint:** `POST /api/auth/register/admin`\n\n## Request Body\n\n``` json\n{\n  \"fullName\": \"Admin\",\n  \"email\": \"shopmate400@gmail.com\",\n  \"password\": \"Shopmate400+\",\n  \"location_data\": {\n    \"city\": \"Lagos\",\n    \"region\": \"Lagos State\",\n    \"country\": \"Nigeria\"\n  }\n}\n\n ```\n\n**Note:** `location_data` is optional.\n\n## Success Response (200)\n\n``` json\n{\n  \"message\": \"Admin registered successfully. Please verify your email with the OTP sent.\",\n  \"adminId\": \"cmmn9jnm00005n23wdb8f4cbr\",\n  \"email\": \"shopmate400@gmail.com\",\n  \"expiresIn\": \"30 minutes\"\n}\n\n ```\n\n## Error Response (400)\n\n``` json\n{\n  \"message\": [\n    \"Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (e.g., +=-!@#$%^&*())\"\n  ],\n  \"error\": \"Bad Request\",\n  \"statusCode\": 400\n}\n\n ```\n\n``` json\n{\n  \"message\": \"Email already registered as admin\",\n  \"error\": \"Bad Request\",\n  \"statusCode\": 400\n}\n\n ```\n\n---\n\n# User Registration\n\nRegister a new **user account**. An **OTP verification email** will be sent.\n\n**Endpoint:** `POST /api/auth/register/user`\n\n## Request Body\n\n``` json\n{\n  \"fullName\": \"Tunji Akande\",\n  \"email\": \"akandetunji2@gmail.com\",\n  \"password\": \"Akande95+\",\n  \"location_data\": {\n    \"city\": \"Lagos\",\n    \"region\": \"Lagos State\",\n    \"country\": \"Nigeria\"\n  }\n}\n\n ```\n\n**Note:** `location_data` is optional.\n\n## Success Response (200)\n\n``` json\n{\n  \"message\": \"User registered successfully. Please verify your email with the OTP sent.\",\n  \"userId\": \"cmmn9exe40002n23wsfuewi42\",\n  \"email\": \"akandetunji2@gmail.com\",\n  \"expiresIn\": \"30 minutes\"\n}\n\n ```\n\n## Error Response (400)\n\nSame validation errors as **Admin Registration**, but specific to users.\n\n---\n\n# Login\n\nAuthenticate an **admin or user account**.\n\n**Endpoint:** `POST /api/auth/login`\n\n---\n\n## Request Body (Admin)\n\n``` json\n{\n  \"email\": \"shopmate400@gmail.com\",\n  \"password\": \"Shopmate400+\",\n  \"location_data\": {\n    \"city\": \"Lagos\",\n    \"region\": \"Lagos State\",\n    \"country\": \"Nigeria\"\n  }\n}\n\n ```\n\n## Request Body (User)\n\n``` json\n{\n  \"email\": \"akandetunji2@gmail.com\",\n  \"password\": \"Akande95+\",\n  \"location_data\": {\n    \"city\": \"Lagos\",\n    \"region\": \"Lagos State\",\n    \"country\": \"Nigeria\"\n  }\n}\n\n ```\n\n**Note:** `location_data` is optional.\n\n---\n\n## Success Response (Admin - 200)\n\n``` json\n{\n  \"message\": \"Login successful\",\n  \"admin\": {\n    \"id\": \"cmmn58hmq0000r43wku4120ph\",\n    \"email\": \"shopmate400@gmail.com\",\n    \"fullName\": \"Admin\",\n    \"role\": \"ADMIN\"\n  },\n  \"sessionId\": \"cmmn776g00000543wt6xglq1r\",\n  \"accountType\": \"admin\"\n}\n\n ```\n\n## Success Response (User - 200)\n\n``` json\n{\n  \"message\": \"Login successful\",\n  \"user\": {\n    \"id\": \"cmmn9exe40002n23wsfuewi42\",\n    \"email\": \"akandetunji2@gmail.com\",\n    \"fullName\": \"Tunji Akande\",\n    \"role\": \"USER\"\n  },\n  \"sessionId\": \"cmmn9h0z20004n23wvj3cgi6x\",\n  \"token\": \"sess_522124f943af58170858367dba2e41410f4a00007526eb33d4ddf7880aa7a677\",\n  \"accountType\": \"user\",\n  \"hasCompanyData\": false\n}\n\n ```\n\n## Error Response (401)\n\n``` json\n{\n  \"message\": \"Please verify your email first. A new verification code has been sent.\",\n  \"error\": \"Unauthorized\",\n  \"statusCode\": 401\n}\n\n ```\n\n---\n\n# Logout\n\nLogs out the currently authenticated **user or admin**.\n\n**Endpoint:** `POST /api/auth/logout`\n\n## Authorization\n\nAuthentication token/session is required.\n\n## Success Response (200)\n\n``` json\n{\n  \"message\": \"Logged out successfully\"\n}\n\n ```\n\n---\n\n# Verify OTP\n\nVerify the email using the **OTP sent to the user's email**.\n\n**Endpoint:** `POST /api/auth/verify-otp`\n\n## Request Body\n\n``` json\n{\n  \"email\": \"akandetunji2@gmail.com\",\n  \"otp\": \"258826\"\n}\n\n ```\n\n## Success Response (200)\n\n``` json\n{\n  \"message\": \"Email verified successfully\",\n  \"verified\": true\n}\n\n ```\n\n## Error Response (400)\n\n``` json\n{\n  \"message\": \"Invalid or expired OTP\",\n  \"error\": \"Bad Request\",\n  \"statusCode\": 400\n}\n\n ```\n\n---\n\n# Resend OTP\n\nResends a new **email verification OTP**.\n\n**Endpoint:** `POST /api/auth/resend-otp`\n\n## Request Body\n\n``` json\n{\n  \"email\": \"shopmate400@gmail.com\"\n}\n\n ```\n\n## Success Response (200)\n\n``` json\n{\n  \"message\": \"A new verification code has been sent to your email\",\n  \"expiresIn\": \"30 minutes\"\n}\n\n ```\n\n---\n\n# Forgot Password\n\nRequest a **password reset link** to be sent to the user's email.\n\n**Endpoint:** `POST /api/auth/forgot-password`\n\n## Request Body\n\n``` json\n{\n  \"email\": \"shopmate400@gmail.com\"\n}\n\n ```\n\n## Success Response (200)\n\n``` json\n{\n  \"message\": \"Password reset instructions have been sent to your email\",\n  \"expiresIn\": \"1 hour\"\n}\n\n ```\n\n---\n\n# Reset Password\n\nReset password using the **reset token from the email**.\n\n**Endpoint:** `POST /api/auth/reset-password`\n\n## Request Body\n\n``` json\n{\n  \"oobCode\": \"VPyrrMFuIztjfQv9fVhmGQ95Zt4adXY2eOAvdd3BAH0AAAGc4UlViQ\",\n  \"newPassword\": \"Shopmate400++\"\n}\n\n ```\n\n## Success Response (200)\n\n``` json\n{\n  \"message\": \"Password has been reset successfully. You can now log in with your new password.\"\n}\n\n ```\n\n## Error Response (400)\n\n``` json\n{\n  \"message\": \"Invalid reset link. Please request a new one.\",\n  \"error\": \"Bad Request\",\n  \"statusCode\": 400\n}\n\n ```\n\n---",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "23111537",
+		"_collection_link": "https://cloudy-space-392403.postman.co/workspace/task_master~ae4f4e68-8018-4f07-aa95-e418c5d2a608/collection/23111537-e932262b-37d4-4675-a84f-5dde6717fe8a?action=share&source=collection_link&creator=23111537"
+	},
+	"item": [
+		{
+			"name": "admin: register",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"fullName\": \"Admin\",\n  \"email\": \"shopmate400@gmail.com\",\n  \"password\": \"Shopmate400+\",\n  \"location_data\": {  //optional\n    \"city\": \"Lagos\",\n    \"region\": \"Lagos State\",\n    \"country\": \"Nigeria\"\n  }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/auth/register/admin",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"auth",
+						"register",
+						"admin"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "200",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"fullName\": \"Admin\",\n  \"email\": \"shopmate400@gmail.com\",\n  \"password\": \"Shopmate400+\",\n  \"location_data\": {  //optional\n    \"city\": \"Lagos\",\n    \"region\": \"Lagos State\",\n    \"country\": \"Nigeria\"\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/register/admin",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register",
+								"admin"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Security-Policy",
+							"value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+						},
+						{
+							"key": "Cross-Origin-Opener-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Cross-Origin-Resource-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Origin-Agent-Cluster",
+							"value": "?1"
+						},
+						{
+							"key": "Referrer-Policy",
+							"value": "no-referrer"
+						},
+						{
+							"key": "Strict-Transport-Security",
+							"value": "max-age=31536000; includeSubDomains"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "X-DNS-Prefetch-Control",
+							"value": "off"
+						},
+						{
+							"key": "X-Download-Options",
+							"value": "noopen"
+						},
+						{
+							"key": "X-Frame-Options",
+							"value": "SAMEORIGIN"
+						},
+						{
+							"key": "X-Permitted-Cross-Domain-Policies",
+							"value": "none"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "0"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "http://localhost:3000"
+						},
+						{
+							"key": "Vary",
+							"value": "Origin"
+						},
+						{
+							"key": "Access-Control-Allow-Credentials",
+							"value": "true"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Content-Length",
+							"value": "183"
+						},
+						{
+							"key": "ETag",
+							"value": "W/\"b7-moQgK2lPHcItqYOEe4X9BB2F5S8\""
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 12 Mar 2026 09:26:24 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"message\": \"Admin registered successfully. Please verify your email with the OTP sent.\",\n    \"adminId\": \"cmmn9jnm00005n23wdb8f4cbr\",\n    \"email\": \"shopmate400@gmail.com\",\n    \"expiresIn\": \"30 minutes\"\n}"
+				},
+				{
+					"name": "400",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"fullName\": \"Admin\",\n  \"email\": \"shopmate400@gmail.com\",\n  \"password\": \"Shopmate400\",\n  \"location_data\": {  //optional\n    \"city\": \"Lagos\",\n    \"region\": \"Lagos State\",\n    \"country\": \"Nigeria\"\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/register/admin",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register",
+								"admin"
+							]
+						}
+					},
+					"status": "Bad Request",
+					"code": 400,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Security-Policy",
+							"value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+						},
+						{
+							"key": "Cross-Origin-Opener-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Cross-Origin-Resource-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Origin-Agent-Cluster",
+							"value": "?1"
+						},
+						{
+							"key": "Referrer-Policy",
+							"value": "no-referrer"
+						},
+						{
+							"key": "Strict-Transport-Security",
+							"value": "max-age=31536000; includeSubDomains"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "X-DNS-Prefetch-Control",
+							"value": "off"
+						},
+						{
+							"key": "X-Download-Options",
+							"value": "noopen"
+						},
+						{
+							"key": "X-Frame-Options",
+							"value": "SAMEORIGIN"
+						},
+						{
+							"key": "X-Permitted-Cross-Domain-Policies",
+							"value": "none"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "0"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "http://localhost:3000"
+						},
+						{
+							"key": "Vary",
+							"value": "Origin"
+						},
+						{
+							"key": "Access-Control-Allow-Credentials",
+							"value": "true"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Content-Length",
+							"value": "189"
+						},
+						{
+							"key": "ETag",
+							"value": "W/\"bd-vYWF3WLjctye/WanWMdJUyWnoLQ\""
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 12 Mar 2026 14:34:59 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"message\": [\n        \"Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (e.g., +=-!@#$%^&*())\"\n    ],\n    \"error\": \"Bad Request\",\n    \"statusCode\": 400\n}"
+				}
+			]
+		},
+		{
+			"name": "user: register",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"fullName\": \"Tunji Akande\",\n  \"email\": \"akandetunji2@gmail.com\",\n  \"password\": \"Akande95+\",\n  \"location_data\": { //optional\n    \"city\": \"Lagos\",\n    \"region\": \"Lagos State\",\n    \"country\": \"Nigeria\"\n  }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/auth/register/user",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"auth",
+						"register",
+						"user"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "200",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"fullName\": \"Tunji Akande\",\n  \"email\": \"akandetunji2@gmail.com\",\n  \"password\": \"Akande95+\",\n  \"location_data\": { //optional\n    \"city\": \"Lagos\",\n    \"region\": \"Lagos State\",\n    \"country\": \"Nigeria\"\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/register/user",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register",
+								"user"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Security-Policy",
+							"value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+						},
+						{
+							"key": "Cross-Origin-Opener-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Cross-Origin-Resource-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Origin-Agent-Cluster",
+							"value": "?1"
+						},
+						{
+							"key": "Referrer-Policy",
+							"value": "no-referrer"
+						},
+						{
+							"key": "Strict-Transport-Security",
+							"value": "max-age=31536000; includeSubDomains"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "X-DNS-Prefetch-Control",
+							"value": "off"
+						},
+						{
+							"key": "X-Download-Options",
+							"value": "noopen"
+						},
+						{
+							"key": "X-Frame-Options",
+							"value": "SAMEORIGIN"
+						},
+						{
+							"key": "X-Permitted-Cross-Domain-Policies",
+							"value": "none"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "0"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "http://localhost:3000"
+						},
+						{
+							"key": "Vary",
+							"value": "Origin"
+						},
+						{
+							"key": "Access-Control-Allow-Credentials",
+							"value": "true"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Content-Length",
+							"value": "182"
+						},
+						{
+							"key": "ETag",
+							"value": "W/\"b6-SBy15BdpzGozbw7Z9DocIuRIqmw\""
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 12 Mar 2026 09:22:40 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"message\": \"User registered successfully. Please verify your email with the OTP sent.\",\n    \"userId\": \"cmmn9exe40002n23wsfuewi42\",\n    \"email\": \"akandetunji2@gmail.com\",\n    \"expiresIn\": \"30 minutes\"\n}"
+				}
+			]
+		},
+		{
+			"name": "login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.globals.set(\"session_id\", pm.response.json().sessionId);",
+							"pm.globals.set(\"auth_token\", pm.response.json().token); // Use the actual token for auth"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "//ADMIN\n// {\n//   \"email\": \"shopmate400@gmail.com\",\n//   \"password\": \"Shopmate400+\",\n//   \"location_data\": {  //optional\n//     \"city\": \"Lagos\",\n//     \"region\": \"Lagos State\",\n//     \"country\": \"Nigeria\"\n//   }\n// }\n\n//USER\n{\n \"email\": \"akandetunji2@gmail.com\",\n  \"password\": \"Akande95+\",\n  \"location_data\": {\n    \"city\": \"Lagos\",\n    \"region\": \"Lagos State\",\n    \"country\": \"Nigeria\"\n  }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/auth/login",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "200 admin",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "//ADMIN\n{\n  \"email\": \"shopmate400@gmail.com\",\n  \"password\": \"Shopmate400+\",\n  \"location_data\": {  //optional\n    \"city\": \"Lagos\",\n    \"region\": \"Lagos State\",\n    \"country\": \"Nigeria\"\n  }\n}\n\n//USER\n// {\n//  \"email\": \"akandetunji2@gmail.com\",\n//   \"password\": \"Akande95+\",\n//   \"location_data\": {\n//     \"city\": \"Lagos\",\n//     \"region\": \"Lagos State\",\n//     \"country\": \"Nigeria\"\n//   }\n// }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Security-Policy",
+							"value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+						},
+						{
+							"key": "Cross-Origin-Opener-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Cross-Origin-Resource-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Origin-Agent-Cluster",
+							"value": "?1"
+						},
+						{
+							"key": "Referrer-Policy",
+							"value": "no-referrer"
+						},
+						{
+							"key": "Strict-Transport-Security",
+							"value": "max-age=31536000; includeSubDomains"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "X-DNS-Prefetch-Control",
+							"value": "off"
+						},
+						{
+							"key": "X-Download-Options",
+							"value": "noopen"
+						},
+						{
+							"key": "X-Frame-Options",
+							"value": "SAMEORIGIN"
+						},
+						{
+							"key": "X-Permitted-Cross-Domain-Policies",
+							"value": "none"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "0"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "http://localhost:3000"
+						},
+						{
+							"key": "Vary",
+							"value": "Origin"
+						},
+						{
+							"key": "Access-Control-Allow-Credentials",
+							"value": "true"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Content-Length",
+							"value": "201"
+						},
+						{
+							"key": "ETag",
+							"value": "W/\"c9-WCDJbp+h+EENuVVjLOhPO+6yBsw\""
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 12 Mar 2026 08:20:35 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"message\": \"Login successful\",\n    \"admin\": {\n        \"id\": \"cmmn58hmq0000r43wku4120ph\",\n        \"email\": \"shopmate400@gmail.com\",\n        \"fullName\": \"Admin\",\n        \"role\": \"ADMIN\"\n    },\n    \"sessionId\": \"cmmn776g00000543wt6xglq1r\",\n    \"accountType\": \"admin\"\n}"
+				},
+				{
+					"name": "200 users",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "//ADMIN\n// {\n//   \"email\": \"shopmate400@gmail.com\",\n//   \"password\": \"Shopmate400+\",\n//   \"location_data\": {  //optional\n//     \"city\": \"Lagos\",\n//     \"region\": \"Lagos State\",\n//     \"country\": \"Nigeria\"\n//   }\n// }\n\n//USER\n{\n \"email\": \"akandetunji2@gmail.com\",\n  \"password\": \"Akande95+\",\n  \"location_data\": {\n    \"city\": \"Lagos\",\n    \"region\": \"Lagos State\",\n    \"country\": \"Nigeria\"\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Security-Policy",
+							"value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+						},
+						{
+							"key": "Cross-Origin-Opener-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Cross-Origin-Resource-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Origin-Agent-Cluster",
+							"value": "?1"
+						},
+						{
+							"key": "Referrer-Policy",
+							"value": "no-referrer"
+						},
+						{
+							"key": "Strict-Transport-Security",
+							"value": "max-age=31536000; includeSubDomains"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "X-DNS-Prefetch-Control",
+							"value": "off"
+						},
+						{
+							"key": "X-Download-Options",
+							"value": "noopen"
+						},
+						{
+							"key": "X-Frame-Options",
+							"value": "SAMEORIGIN"
+						},
+						{
+							"key": "X-Permitted-Cross-Domain-Policies",
+							"value": "none"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "0"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "http://localhost:3000"
+						},
+						{
+							"key": "Vary",
+							"value": "Origin"
+						},
+						{
+							"key": "Access-Control-Allow-Credentials",
+							"value": "true"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Content-Length",
+							"value": "309"
+						},
+						{
+							"key": "ETag",
+							"value": "W/\"135-Ike1lKh/tG1UHnfx1I2OWOpND7Q\""
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 12 Mar 2026 09:24:14 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"message\": \"Login successful\",\n    \"user\": {\n        \"id\": \"cmmn9exe40002n23wsfuewi42\",\n        \"email\": \"akandetunji2@gmail.com\",\n        \"fullName\": \"Tunji Akande\",\n        \"role\": \"USER\"\n    },\n    \"sessionId\": \"cmmn9h0z20004n23wvj3cgi6x\",\n    \"token\": \"sess_522124f943af58170858367dba2e41410f4a00007526eb33d4ddf7880aa7a677\",\n    \"accountType\": \"user\",\n    \"hasCompanyData\": false\n}"
+				},
+				{
+					"name": "401",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "//ADMIN\n{\n  \"email\": \"shopmate400@gmail.com\",\n  \"password\": \"Shopmate400+\",\n  \"location_data\": {  //optional\n    \"city\": \"Lagos\",\n    \"region\": \"Lagos State\",\n    \"country\": \"Nigeria\"\n  }\n}\n\n//USER\n// {\n//  \"email\": \"akandetunji2@gmail.com\",\n//   \"password\": \"Akande95+\",\n//   \"location_data\": {\n//     \"city\": \"Lagos\",\n//     \"region\": \"Lagos State\",\n//     \"country\": \"Nigeria\"\n//   }\n// }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"status": "Unauthorized",
+					"code": 401,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Security-Policy",
+							"value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+						},
+						{
+							"key": "Cross-Origin-Opener-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Cross-Origin-Resource-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Origin-Agent-Cluster",
+							"value": "?1"
+						},
+						{
+							"key": "Referrer-Policy",
+							"value": "no-referrer"
+						},
+						{
+							"key": "Strict-Transport-Security",
+							"value": "max-age=31536000; includeSubDomains"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "X-DNS-Prefetch-Control",
+							"value": "off"
+						},
+						{
+							"key": "X-Download-Options",
+							"value": "noopen"
+						},
+						{
+							"key": "X-Frame-Options",
+							"value": "SAMEORIGIN"
+						},
+						{
+							"key": "X-Permitted-Cross-Domain-Policies",
+							"value": "none"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "0"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "http://localhost:3000"
+						},
+						{
+							"key": "Vary",
+							"value": "Origin"
+						},
+						{
+							"key": "Access-Control-Allow-Credentials",
+							"value": "true"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Content-Length",
+							"value": "124"
+						},
+						{
+							"key": "ETag",
+							"value": "W/\"7c-tz3YXiZsbW15Dy/sS1mIrDlJB1c\""
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 12 Mar 2026 09:27:09 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"message\": \"Please verify your email first. A new verification code has been sent.\",\n    \"error\": \"Unauthorized\",\n    \"statusCode\": 401\n}"
+				}
+			]
+		},
+		{
+			"name": "logout",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{auth_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/auth/logout",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"auth",
+						"logout"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "200",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/auth/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"logout"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Security-Policy",
+							"value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+						},
+						{
+							"key": "Cross-Origin-Opener-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Cross-Origin-Resource-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Origin-Agent-Cluster",
+							"value": "?1"
+						},
+						{
+							"key": "Referrer-Policy",
+							"value": "no-referrer"
+						},
+						{
+							"key": "Strict-Transport-Security",
+							"value": "max-age=31536000; includeSubDomains"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "X-DNS-Prefetch-Control",
+							"value": "off"
+						},
+						{
+							"key": "X-Download-Options",
+							"value": "noopen"
+						},
+						{
+							"key": "X-Frame-Options",
+							"value": "SAMEORIGIN"
+						},
+						{
+							"key": "X-Permitted-Cross-Domain-Policies",
+							"value": "none"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "0"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "http://localhost:3000"
+						},
+						{
+							"key": "Vary",
+							"value": "Origin"
+						},
+						{
+							"key": "Access-Control-Allow-Credentials",
+							"value": "true"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Content-Length",
+							"value": "37"
+						},
+						{
+							"key": "ETag",
+							"value": "W/\"25-71uUsMgZY3FdZp9j1h5YMrBIOgg\""
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 12 Mar 2026 09:37:08 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"message\": \"Logged out successfully\"\n}"
+				}
+			]
+		},
+		{
+			"name": "verify otp",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "//ADMIN\n// {\n//   \"email\": \"shopmate400@gmail.com\",\n//   \"otp\": \"712938\"\n// }\n\n//USER\n{\n  \"email\": \"akandetunji2@gmail.com\",\n  \"otp\": \"168409\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/auth/verify-otp",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"auth",
+						"verify-otp"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "200",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "//ADMIN\n{\n  \"email\": \"shopmate400@gmail.com\",\n  \"otp\": \"320882\"\n}\n\n//USER\n// {\n//   \"email\": \"akandetunji2@gmail.com\",\n//   \"otp\": \"123456\"\n// }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/verify-otp",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"verify-otp"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Security-Policy",
+							"value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+						},
+						{
+							"key": "Cross-Origin-Opener-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Cross-Origin-Resource-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Origin-Agent-Cluster",
+							"value": "?1"
+						},
+						{
+							"key": "Referrer-Policy",
+							"value": "no-referrer"
+						},
+						{
+							"key": "Strict-Transport-Security",
+							"value": "max-age=31536000; includeSubDomains"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "X-DNS-Prefetch-Control",
+							"value": "off"
+						},
+						{
+							"key": "X-Download-Options",
+							"value": "noopen"
+						},
+						{
+							"key": "X-Frame-Options",
+							"value": "SAMEORIGIN"
+						},
+						{
+							"key": "X-Permitted-Cross-Domain-Policies",
+							"value": "none"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "0"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "http://localhost:3000"
+						},
+						{
+							"key": "Vary",
+							"value": "Origin"
+						},
+						{
+							"key": "Access-Control-Allow-Credentials",
+							"value": "true"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Content-Length",
+							"value": "57"
+						},
+						{
+							"key": "ETag",
+							"value": "W/\"39-Un0hb466uhOjqdIOZQWhtBvaAok\""
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 12 Mar 2026 07:57:13 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"message\": \"Email verified successfully\",\n    \"verified\": true\n}"
+				}
+			]
+		},
+		{
+			"name": "resend otp",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "//ADMIN\n{\n  \"email\": \"shopmate400@gmail.com\"\n}\n\n//USER\n// {\n//   \"email\": \"akandetunji2@gmail.com\"\n// }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/auth/resend-otp",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"auth",
+						"resend-otp"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "200",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "//ADMIN\n{\n  \"email\": \"shopmate400@gmail.com\"\n}\n\n//USER\n// {\n//   \"email\": \"akandetunji2@gmail.com\"\n// }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/resend-otp",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"resend-otp"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Security-Policy",
+							"value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+						},
+						{
+							"key": "Cross-Origin-Opener-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Cross-Origin-Resource-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Origin-Agent-Cluster",
+							"value": "?1"
+						},
+						{
+							"key": "Referrer-Policy",
+							"value": "no-referrer"
+						},
+						{
+							"key": "Strict-Transport-Security",
+							"value": "max-age=31536000; includeSubDomains"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "X-DNS-Prefetch-Control",
+							"value": "off"
+						},
+						{
+							"key": "X-Download-Options",
+							"value": "noopen"
+						},
+						{
+							"key": "X-Frame-Options",
+							"value": "SAMEORIGIN"
+						},
+						{
+							"key": "X-Permitted-Cross-Domain-Policies",
+							"value": "none"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "0"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "http://localhost:3000"
+						},
+						{
+							"key": "Vary",
+							"value": "Origin"
+						},
+						{
+							"key": "Access-Control-Allow-Credentials",
+							"value": "true"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Content-Length",
+							"value": "90"
+						},
+						{
+							"key": "ETag",
+							"value": "W/\"5a-iEK+2awu69j7r87JldcfNE3OPsY\""
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 12 Mar 2026 07:56:35 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"message\": \"A new verification code has been sent to your email\",\n    \"expiresIn\": \"30 minutes\"\n}"
+				}
+			]
+		},
+		{
+			"name": "forgot password",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "//ADMIN\n{\n  \"email\": \"shopmate400@gmail.com\"\n}\n\n//USER\n// {\n//   \"email\": \"akandetunji2@gmail.com\"\n// }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/auth/forgot-password",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"auth",
+						"forgot-password"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "200",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "//ADMIN\n{\n  \"email\": \"shopmate400@gmail.com\"\n}\n\n//USER\n// {\n//   \"email\": \"akandetunji2@gmail.com\"\n// }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/forgot-password",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"forgot-password"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Security-Policy",
+							"value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+						},
+						{
+							"key": "Cross-Origin-Opener-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Cross-Origin-Resource-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Origin-Agent-Cluster",
+							"value": "?1"
+						},
+						{
+							"key": "Referrer-Policy",
+							"value": "no-referrer"
+						},
+						{
+							"key": "Strict-Transport-Security",
+							"value": "max-age=31536000; includeSubDomains"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "X-DNS-Prefetch-Control",
+							"value": "off"
+						},
+						{
+							"key": "X-Download-Options",
+							"value": "noopen"
+						},
+						{
+							"key": "X-Frame-Options",
+							"value": "SAMEORIGIN"
+						},
+						{
+							"key": "X-Permitted-Cross-Domain-Policies",
+							"value": "none"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "0"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "http://localhost:3000"
+						},
+						{
+							"key": "Vary",
+							"value": "Origin"
+						},
+						{
+							"key": "Access-Control-Allow-Credentials",
+							"value": "true"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Content-Length",
+							"value": "91"
+						},
+						{
+							"key": "ETag",
+							"value": "W/\"5b-6nwweODTt9CjL473pzectgy+Y34\""
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 12 Mar 2026 08:28:54 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"message\": \"Password reset instructions have been sent to your email\",\n    \"expiresIn\": \"1 hour\"\n}"
+				}
+			]
+		},
+		{
+			"name": "reset password",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"oobCode\": \"VPyrrMFuIztjfQv9fVhmGQ95Zt4adXY2eOAvdd3BAH0AAAGc4UlViQ\",\n  \"newPassword\": \"Shopmate400++\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/auth/reset-password",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"auth",
+						"reset-password"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "200",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"oobCode\": \"pQqH3rP0g0vh-IKP2wcaC4k7ioSXzEABf5GKLBW9YUMAAAGc4Smuhg\",\n  \"newPassword\": \"Shopmate400++\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/reset-password",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"reset-password"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Security-Policy",
+							"value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+						},
+						{
+							"key": "Cross-Origin-Opener-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Cross-Origin-Resource-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Origin-Agent-Cluster",
+							"value": "?1"
+						},
+						{
+							"key": "Referrer-Policy",
+							"value": "no-referrer"
+						},
+						{
+							"key": "Strict-Transport-Security",
+							"value": "max-age=31536000; includeSubDomains"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "X-DNS-Prefetch-Control",
+							"value": "off"
+						},
+						{
+							"key": "X-Download-Options",
+							"value": "noopen"
+						},
+						{
+							"key": "X-Frame-Options",
+							"value": "SAMEORIGIN"
+						},
+						{
+							"key": "X-Permitted-Cross-Domain-Policies",
+							"value": "none"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "0"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "http://localhost:3000"
+						},
+						{
+							"key": "Vary",
+							"value": "Origin"
+						},
+						{
+							"key": "Access-Control-Allow-Credentials",
+							"value": "true"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Content-Length",
+							"value": "94"
+						},
+						{
+							"key": "ETag",
+							"value": "W/\"5e-x9P9bs+8d7PLWFM8aYXuiM2Yzq4\""
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 12 Mar 2026 08:48:48 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"message\": \"Password has been reset successfully. You can now log in with your new password.\"\n}"
+				}
+			]
+		}
+	]
+}
