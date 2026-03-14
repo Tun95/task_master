@@ -2,19 +2,9 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./",   // 👈 allow both src and config
-    "incremental": true,
-    "noEmitOnError": false,
-    "skipLibCheck": true,
-    "paths": {
-      "@/*": ["./src/*"],
-      "@auth/*": ["./src/auth/*"],
-      "@common/*": ["./src/utils/common/*"],
-      "@config/*": ["./config/*"],
-      "@prisma-local/*": ["./src/utils/prisma/*"],
-      "@email/*": ["./src/utils/email/*"]
-    }
+    "rootDir": "./",
+    "baseUrl": "./"
   },
-  "include": ["src/**/*.ts", "config/**/*.ts"],
+  "include": ["src/**/*", "config/**/*"],
   "exclude": ["node_modules", "test", "dist", "**/*.spec.ts"]
 }
