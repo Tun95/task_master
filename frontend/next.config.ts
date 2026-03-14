@@ -20,7 +20,7 @@ const nextConfig = {
   },
 
   publicRuntimeConfig: {
-    apiUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000",
+    apiUrl: process.env.NEXT_PUBLIC_API_URL || "/api",
   },
 
   // Add rewrites to proxy API requests to your backend
