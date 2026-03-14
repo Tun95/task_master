@@ -62,7 +62,7 @@ POST /api/auth/register/admin
 {
   "fullName": "Admin",
   "email": "shopmate400@gmail.com",
-  "password": "Shopmate400+",
+  "password": "********",
   "location_data": {
     "city": "Lagos",
     "region": "Lagos State",
@@ -102,7 +102,7 @@ POST /api/auth/register/user
 {
   "fullName": "Tunji Akande",
   "email": "akandetunji2@gmail.com",
-  "password": "Akande95+",
+  "password": "********",
   "location_data": {
     "city": "Lagos",
     "region": "Lagos State",
@@ -141,7 +141,7 @@ POST /api/auth/login
 ```json
 {
   "email": "akandetunji2@gmail.com",
-  "password": "Akande95+"
+  "password": "********"
 }
 ```
 
@@ -678,12 +678,12 @@ DEMO: http://203.161.49.37
 ```
 USER A:
 EMAIL: akandetunji2@gmail.com
-PASS: Akande95+
+PASS: ********
 ```
 ```
 USER B:
 EMAIL: shopmate400@gmail.com
-PASS: Shopmate400+
+PASS: ********
 ```
 
 ---
