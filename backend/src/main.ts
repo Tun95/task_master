@@ -1,26 +1,51 @@
-import 'module-alias/register';
-
+// backend/src/main.ts
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
-import { ConfigService } from '@config/config.service';
-import { initializeFirebase } from '@config/firebase.config';
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+import { ConfigService } from 'config/config.service';
+import { initializeFirebase } from 'config/firebase.config';
+import * as express from 'express';
 
-  // Initialize Firebase
+async function bootstrap() {
+  // For Creating temporary config service for Firebase initialization
   const configService = new ConfigService();
+
+  // To Initialize Firebase FIRST, before anything else
   try {
     initializeFirebase(configService);
     console.log('🔥 Firebase initialized successfully');
   } catch (error) {
-    console.error('❌ Firebase initialization failed:', error);
+    console.error('Failed to initialize Firebase:', error);
     process.exit(1);
   }
 
+  const app = await NestFactory.create(AppModule);
+
+  // Root status endpoint
+  const rootRouter = express.Router();
+  rootRouter.get('/', (req, res) => {
+    res.status(200).json({
+      status: 'UP',
+      timestamp: new Date().toISOString(),
+      service: 'TaskMaster API',
+      uptime: process.uptime(),
+      environment: configService.nodeEnv,
+      firebase: 'connected',
+    });
+  });
+  app.use(rootRouter);
+
+  // Security
   app.use(helmet());
-  app.enableCors();
+
+  // CORS
+  app.enableCors({
+    origin: configService.frontendUrl || 'http://localhost:3000',
+    credentials: true,
+  });
+
+  // Validation
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -28,10 +53,15 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
     }),
   );
+
+  // Global prefix
   app.setGlobalPrefix('api');
 
-  const port = process.env.PORT || 3000;
-  await app.listen(port, '0.0.0.0');
-  console.log(`🚀 TaskMaster API running on http://0.0.0.0:${port}/api`);
+  const port = configService.port || 5000;
+  await app.listen(port);
+
+  console.log(`🚀 TaskMaster API running on: http://localhost:${port}/api`);
+  console.log(`📝 Environment: ${configService.nodeEnv}`);
+  console.log(`💓 Status check available at: http://localhost:${port}/`);
 }
 bootstrap();
