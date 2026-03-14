@@ -15,7 +15,7 @@ import {
 import { UserInfo } from "../types/context.types";
 import { storeUserInfo, getUserInfo, clearUserInfo } from "@/utils/encryption";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://203.161.49.37:5005";
 
 // Helper to handle 401 unauthorized - redirect to login
 const handleUnauthorized = () => {
