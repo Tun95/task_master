@@ -225,6 +225,21 @@ Resend email verification OTP.
 POST /api/auth/resend-otp
 ```
 
+### Request Body
+
+```json
+{
+  "email": "akandetunji2@gmail.com",
+}
+```
+
+### Success Response
+```json
+{
+    "message": "A new verification code has been sent to your email",
+    "expiresIn": "30 minutes"
+}
+```
 ---
 
 ## Forgot Password
@@ -235,6 +250,21 @@ Send password reset instructions.
 
 ```
 POST /api/auth/forgot-password
+```
+### Request Body
+
+```json
+{
+  "email": "akandetunji2@gmail.com",
+}
+```
+
+### Success Response
+```json
+{
+    "message": "Password reset instructions have been sent to your email",
+    "expiresIn": "1 hour"
+}
 ```
 
 ---
@@ -253,8 +283,15 @@ POST /api/auth/reset-password
 
 ```json
 {
-  "oobCode": "reset_code_here",
+  "oobCode": "VPyrrMFuIztjfQv9fVhmGQ95Zt4adXY2eOAvdd3BAH0AAAGc4UlViQ",
   "newPassword": "NewPassword123+"
+}
+```
+
+### Success Response
+```json
+{
+    "message": "Password has been reset successfully. You can now log in with your new password."
 }
 ```
 
