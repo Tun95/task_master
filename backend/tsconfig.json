@@ -16,6 +16,7 @@
     "forceConsistentCasingInFileNames": true,
     "noImplicitAny": false,
     "strictBindCallApply": false,
+    "allowJs": true,
     "types": ["node", "express", "jest"],
     "noFallthroughCasesInSwitch": false,
     "paths": {

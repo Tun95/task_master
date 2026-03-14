@@ -6,6 +6,6 @@ import { SessionService } from '@/utils/sessions/session.service';
 @Module({
   imports: [PrismaModule, LoggerModule],
   providers: [SessionService],
-  exports: [SessionService], // Export so other modules can use it
+  exports: [SessionService],
 })
 export class SessionsModule {}
